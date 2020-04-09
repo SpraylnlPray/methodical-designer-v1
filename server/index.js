@@ -5,7 +5,7 @@ const neo4j = require( 'neo4j-driver' );
 const cors = require( 'cors' );
 const { makeAugmentedSchema } = require( 'neo4j-graphql-js' );
 const typeDefs = require( './graphql-schema' );
-const resolvers = require('./resolvers');
+const resolvers = require( './resolvers' );
 
 const app = express();
 app.use( cors() );
@@ -23,6 +23,12 @@ const server = new ApolloServer( {
 	schema,
 	introspection: true,
 	playground: true,
+	formatError: ( err ) => {
+		return {
+			message: err.message,
+			code: err.extensions.code,
+		};
+	},
 } );
 
 const port = process.env.PORT;

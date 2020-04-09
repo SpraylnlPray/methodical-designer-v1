@@ -1,0 +1,118 @@
+scalar URI
+
+enum NodeType{
+  API
+  Command
+  Query
+  Persistence
+  AbstractUserInterface
+  Object
+  Computation
+  Container
+  Domain
+  Invariant
+  ArchitecturalDecisionRecord
+  Definition
+}
+
+enum LinkType{
+  PartOf
+  Trigger
+  Read
+  Mutate
+  Generic
+}
+
+interface IDisplayable{
+  "Minimal data necessary for the object to appear on screen"
+  id: ID!
+  label: String
+  story: URI
+}
+
+interface ILink{
+  "A link must know to what nodes it is connected to and of what types the ends are"
+  from_id: ID
+  to_id: ID
+  sequence: SequenceProperty
+  """
+  if optional=true then sequence MAY be used to define a set of options
+  """
+  optional: Boolean
+  synchronous: Boolean
+  "The frontend will load arrow styles according to the link type"
+  type: LinkType
+}
+
+interface INode{
+  "Shape and color will be set according to the node type"
+  type: NodeType
+}
+
+type Node implements INode & IDisplayable{
+  """
+  We're still missing something here
+  For example the API Node as described in the introduction document
+  can't take a detailed specification. Or is that also the story?
+  """
+  id: ID!
+  label: String!
+  story: URI
+  type: NodeType!
+}
+
+type Link implements ILink & IDisplayable{
+  id: ID!
+  label: String!
+  from_id: ID!
+  to_id: ID!
+  type: LinkType!
+  story: URI
+  sequence: SequenceProperty
+  optional: Boolean
+  synchronous: Boolean
+  unreliable: Boolean
+}
+
+type SequenceProperty{
+  group: String
+  seq: Int
+}
+
+input NodeInput {
+  label: String
+  story: URI
+  type: NodeType
+}
+
+input LinkInput {
+  story: URI
+  sequence: SequencePropertyInput
+  optional: Boolean
+  synchronous: Boolean
+  unreliable: Boolean
+}
+
+input SequencePropertyInput {
+  group: String
+  seq: Int
+}
+
+type Mutation{
+  CreateNode(label: String!, type: NodeType!, story: URI) : Node
+  CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): Link
+  UpdateNode(id: ID!, props: NodeInput): Node
+  # update link
+  # delete node
+  # delete link
+}
+
+#type Queries{
+  # get node
+  # get link
+  # get nodes
+  # get links
+
+  # get whole project (?)
+#}
+
