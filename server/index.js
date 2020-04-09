@@ -1,11 +1,11 @@
-require( 'dotenv' )
-	.config();
+require( 'dotenv' ).config();
 const express = require( 'express' );
 const { ApolloServer } = require( 'apollo-server-express' );
 const neo4j = require( 'neo4j-driver' );
 const cors = require( 'cors' );
 const { makeAugmentedSchema } = require( 'neo4j-graphql-js' );
 const typeDefs = require( './graphql-schema' );
+const resolvers = require('./resolvers');
 
 const app = express();
 app.use( cors() );
@@ -16,7 +16,7 @@ const driver = neo4j.driver(
 	neo4j.auth.basic( process.env.DB_USER, process.env.DB_PW ),
 );
 
-const schema = makeAugmentedSchema( { typeDefs } );
+const schema = makeAugmentedSchema( { typeDefs, resolvers } );
 
 const server = new ApolloServer( {
 	context: { driver },
