@@ -87,11 +87,16 @@ input NodeInput {
 }
 
 input LinkInput {
+  label: String
+  from_id: ID
+  to_id: ID
+  type: LinkType
   story: URI
   sequence: SequencePropertyInput
   optional: Boolean
   synchronous: Boolean
   unreliable: Boolean
+
 }
 
 input SequencePropertyInput {
@@ -104,6 +109,7 @@ type Mutation{
   CreateNode(label: String!, type: NodeType!, story: URI) : Node
   CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): CreateLinkReturn
   UpdateNode(id: ID!, props: NodeInput): Node
+  UpdateLink(id: ID!, props: LinkInput): Link
   # update link
   # delete node
   # delete link
