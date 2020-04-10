@@ -96,13 +96,13 @@ input LinkInput {
   optional: Boolean
   synchronous: Boolean
   unreliable: Boolean
-
 }
 
 input SequencePropertyInput {
   group: String
   label: String
   seq: Int
+  remove: Boolean
 }
 
 type Mutation{

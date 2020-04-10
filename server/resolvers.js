@@ -18,11 +18,11 @@ const resolvers = {
 			  CREATE (l:Link:${ args.type } {id: randomUUID()})
 			  SET l += $props
 			  SET l += {from_id: $from_id, to_id: $to_id, type: $type, label: $label}
-				WITH l as l
+				WITH l AS l
 				MATCH (from:Node) WHERE from.id = $from_id CREATE (from)-[:ACTION]->(l)
-				WITH l as l, from as from
+				WITH l AS l, from AS from
 				MATCH (to:Node) WHERE to.id = $to_id CREATE (l)-[:ON]->(to)
-				RETURN l as link, from, to`;
+				RETURN l AS link, from, to`;
 			let results = await session.run( query, args );
 			let link = results.records[0].get( 'link' ).properties;
 			let from = results.records[0].get( 'from' ).properties;
@@ -36,9 +36,9 @@ const resolvers = {
 				query = `
 					CREATE (s:Sequence {id: randomUUID()})
 					SET s += $sequence
-					WITH s as s
-					MATCH (l:Link) WHERE l.id = $link_id CREATE (l)-[:IS]->(s) CREATE (s)-[:ON]->(l)
-					RETURN s as seq`;
+					WITH s AS s
+					MATCH (l:Link) WHERE l.id = $link_id CREATE (l)-[:IS]->(s)-[:ON]->(l)
+					RETURN s AS seq`;
 				results = await session.run( query, args2 );
 				ret.seq = results.records[0].get( 'seq' ).properties;
 			}
@@ -52,9 +52,11 @@ const resolvers = {
 		},
 		async UpdateLink( _, args, ctx ) {
 			// todo: maybe just on qargs arg for the whole scope?
+			// todo: create one big query?
+			// todo: define return in schema
 			const session = ctx.driver.session();
 			// only changed data will be sent - because of that I can check for existence in the props object
-			// if exists -> changed
+			// if property exists, it changed
 
 			// did "to" node change?
 			// delete current relation and set new relation
@@ -66,7 +68,7 @@ const resolvers = {
 					WITH l AS l
 					MATCH (to:Node) WHERE to.id = $props.to_id
 					CREATE (l)-[:ON]->(to)
-					RETURN l as link, to
+					RETURN l AS link, to
 				`;
 				let results = await session.run( query, qargs );
 			}
@@ -80,18 +82,41 @@ const resolvers = {
 					WITH l AS l
 					MATCH (from:Node) WHERE from.id = $props.from_id
 					CREATE (from)-[:ACTION]->(l)
-					RETURN l as link, from
+					RETURN l AS link, from
 				`;
 				let results = await session.run( query, qargs );
 			}
 			// did sequence change? (updated, deleted, created)
+			if ( args.props.sequence ) {
+				// if user wants to delete the sequence property
+				if ( args.props.sequence.remove ) {
+					const qargs = { id: args.id };
+					const query = `
+						MATCH (l:Link)-[:IS]->(s:Sequence) WHERE l.id = $id
+						DETACH DELETE s
+					`;
+					let results = await session.run( query, qargs );
+				}
+				// if user updated/created the property, check if exists and update if so, otherwise create and set props
+				else {
+					const qargs = { id: args.id, sequence: args.props.sequence };
+					const query = `
+						MATCH (l:Link) WHERE l.id = $id
+						MERGE (l)-[:IS]->(s:Sequence)-[:ON]->(l)
+						ON CREATE SET s = {id: randomUUID()}, s += $sequence
+						ON MATCH SET s += $sequence
+						RETURN s
+					`;
+					let results = await session.run( query, qargs );
+				}
+			}
 
 			// make sure all internal link props get updated
 			const qargs = { id: args.id, props: args.props };
 			const query = `
 				MATCH (l:Link) WHERE l.id = $id
 				SET l += $props
-				RETURN l as link
+				RETURN l AS link
 			`;
 			let results = await session.run( query, qargs );
 		},
