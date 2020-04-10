@@ -31,7 +31,7 @@ interface IDisplayable{
 }
 
 interface ILink{
-  "A link must know to what nodes it is connected to and of what types the ends are"
+  "A link must know to what nodes it is connected to"
   from_id: ID
   to_id: ID
   sequence: SequenceProperty
@@ -77,6 +77,7 @@ type Link implements ILink & IDisplayable{
 type SequenceProperty{
   group: String
   seq: Int
+  label: String
 }
 
 input NodeInput {
@@ -95,16 +96,24 @@ input LinkInput {
 
 input SequencePropertyInput {
   group: String
+  label: String
   seq: Int
 }
 
 type Mutation{
   CreateNode(label: String!, type: NodeType!, story: URI) : Node
-  CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): Link
+  CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): CreateLinkReturn
   UpdateNode(id: ID!, props: NodeInput): Node
   # update link
   # delete node
   # delete link
+}
+
+type CreateLinkReturn{
+  link: Link
+  from: Node
+  to: Node
+  seq: SequenceProperty
 }
 
 #type Queries{
