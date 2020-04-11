@@ -115,7 +115,7 @@ type Mutation{
   CreateNode(label: String!, type: NodeType!, story: URI): NodeOperationReturn
   CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
   UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
-  UpdateLink(id: ID!, props: LinkInput): LinkOperationReturn
+  UpdateLink(id: ID!, props: LinkInput, sequence: SequencePropertyInput): LinkOperationReturn
   # delete node
   # delete link
 }
