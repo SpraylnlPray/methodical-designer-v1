@@ -4,6 +4,7 @@ enum NodeType{
   API
   Command
   Query
+  Event
   Persistence
   AbstractUserInterface
   Object
@@ -21,6 +22,11 @@ enum LinkType{
   Read
   Mutate
   Generic
+}
+
+interface IReturnInfo {
+  message: String
+  success: Boolean!
 }
 
 interface IDisplayable{
@@ -106,16 +112,25 @@ input SequencePropertyInput {
 }
 
 type Mutation{
-  CreateNode(label: String!, type: NodeType!, story: URI) : Node
-  CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): CreateLinkReturn
-  UpdateNode(id: ID!, props: NodeInput): Node
-  UpdateLink(id: ID!, props: LinkInput): Link
-  # update link
+  CreateNode(label: String!, type: NodeType!, story: URI): NodeOperationReturn
+  CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
+  UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
+  UpdateLink(id: ID!, props: LinkInput): LinkOperationReturn
   # delete node
   # delete link
 }
 
-type CreateLinkReturn{
+"Returned when performaing an operation on a node node"
+type NodeOperationReturn implements IReturnInfo {
+  success: Boolean!
+  message: String
+  node: Node
+}
+
+"Returned when performing an operation on a link node"
+type LinkOperationReturn implements IReturnInfo{
+  success: Boolean!
+  message: String
   link: Link
   from: Node
   to: Node
@@ -123,11 +138,11 @@ type CreateLinkReturn{
 }
 
 #type Queries{
-  # get node
-  # get link
-  # get nodes
-  # get links
+# get node
+# get link
+# get nodes
+# get links
 
-  # get whole project (?)
+# get whole project (?)
 #}
 

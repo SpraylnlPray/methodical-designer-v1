@@ -1,16 +1,22 @@
+// todo: Integer handling from Neo4j to JS
+
 const resolvers = {
 	Query: {},
 	Mutation: {
 		async CreateNode( _, args, ctx ) {
 			const session = ctx.driver.session();
-			const query = `CREATE (n:Node:${ args.type } 
-				{id: randomUUID(), label: $label, story: $story, type: $type}) 
+			const query = `
+				CREATE (n:Node:${ args.type } {id: randomUUID(), label: $label, story: $story, type: $type}) 
 				RETURN n`;
 			let results = await session.run( query, args );
-			return results.records.map( record => record.get( 'n' ).properties )[0];
+			return {
+				success: true,
+				node: results.records.map( record => record.get( 'n' ).properties )[0],
+			};
 		},
 		async CreateLink( _, args, ctx ) {
 			const session = ctx.driver.session();
+			let ret = { success: true, link: defaultLink, from: defaultNode, to: defaultNode, seq: defaultSeq };
 			// Create Link node
 			// Connect Link with first node
 			// Connect Link with second node
@@ -24,14 +30,13 @@ const resolvers = {
 				MATCH (to:Node) WHERE to.id = $to_id CREATE (l)-[:ON]->(to)
 				RETURN l AS link, from, to`;
 			let results = await session.run( query, args );
-			let link = results.records[0].get( 'link' ).properties;
-			let from = results.records[0].get( 'from' ).properties;
-			let to = results.records[0].get( 'to' ).properties;
-			let ret = { link, from, to, seq: {} };
+			ret.link = results.records[0].get( 'link' ).properties;
+			ret.from = results.records[0].get( 'from' ).properties;
+			ret.to = results.records[0].get( 'to' ).properties;
 
 			// if user specified a sequence on a link
 			if ( args.sequence ) {
-				let args2 = { sequence: args.sequence, link_id: link.id };
+				let args2 = { sequence: args.sequence, link_id: ret.link.id };
 				// create Sequence node in neo4j and connect it to the Link node
 				query = `
 					CREATE (s:Sequence {id: randomUUID()})
@@ -48,81 +53,110 @@ const resolvers = {
 			const session = ctx.driver.session();
 			const query = `MATCH (n:Node) WHERE n.id = $id SET n += $props RETURN n`;
 			let results = await session.run( query, args );
-			return results.records.map( record => record.get( 'n' ).properties )[0];
+			return {
+				success: true,
+				node: results.records.map( record => record.get( 'n' ).properties )[0],
+			};
 		},
 		async UpdateLink( _, args, ctx ) {
-			// todo: maybe just on qargs arg for the whole scope?
 			// todo: create one big query?
-			// todo: define return in schema
+			// todo: test sequence (create, update, delete) - runs, but neo4j returns an error?
 			const session = ctx.driver.session();
+			let qargs = { id: args.id, props: args.props };
+			let ret = { success: true, link: defaultLink, from: defaultNode, to: defaultNode, seq: defaultSeq };
 			// only changed data will be sent - because of that I can check for existence in the props object
 			// if property exists, it changed
 
-			// did "to" node change?
+			// did 'to' node change?
 			// delete current relation and set new relation
 			if ( args.props.to_id ) {
-				const qargs = { id: args.id, props: args.props };
 				const query = `
 					MATCH (l:Link)-[r:ON]->(:Node) WHERE l.id = $id
 					DELETE r
 					WITH l AS l
 					MATCH (to:Node) WHERE to.id = $props.to_id
 					CREATE (l)-[:ON]->(to)
-					RETURN l AS link, to
+					RETURN to
 				`;
 				let results = await session.run( query, qargs );
+				ret.to = results.records[0].get( 'to' ).properties;
 			}
-			// did "from" node change?
+			// did 'from' node change?
 			// delete current relation and set new relation
 			if ( args.props.from_id ) {
-				const qargs = { id: args.id, props: args.props };
 				const query = `
 					MATCH (:Node)-[r:ACTION]->(l:Link) WHERE l.id = $id
 					DELETE r
 					WITH l AS l
 					MATCH (from:Node) WHERE from.id = $props.from_id
 					CREATE (from)-[:ACTION]->(l)
-					RETURN l AS link, from
+					RETURN from
 				`;
 				let results = await session.run( query, qargs );
+				ret.from = results.records[0].get( 'from' ).properties;
 			}
 			// did sequence change? (updated, deleted, created)
 			if ( args.props.sequence ) {
 				// if user wants to delete the sequence property
 				if ( args.props.sequence.remove ) {
-					const qargs = { id: args.id };
 					const query = `
 						MATCH (l:Link)-[:IS]->(s:Sequence) WHERE l.id = $id
 						DETACH DELETE s
 					`;
-					let results = await session.run( query, qargs );
+					await session.run( query, qargs );
+					return {
+						success: true
+					}
 				}
 				// if user updated/created the property, check if exists and update if so, otherwise create and set props
 				else {
-					const qargs = { id: args.id, sequence: args.props.sequence };
+					qargs.sequence = args.props.sequence;
 					const query = `
 						MATCH (l:Link) WHERE l.id = $id
 						MERGE (l)-[:IS]->(s:Sequence)-[:ON]->(l)
 						ON CREATE SET s = {id: randomUUID()}, s += $sequence
 						ON MATCH SET s += $sequence
-						RETURN s
+						RETURN s AS seq
 					`;
 					let results = await session.run( query, qargs );
+					ret.seq = results.records[0].get( 'seq' ).properties;
 				}
 			}
 
 			// make sure all internal link props get updated
-			const qargs = { id: args.id, props: args.props };
 			const query = `
 				MATCH (l:Link) WHERE l.id = $id
 				SET l += $props
 				RETURN l AS link
 			`;
 			let results = await session.run( query, qargs );
+			ret.link = results.records[0].get( 'link' ).properties;
+
+			return ret;
 		},
 		// delete node
 		// delete link
 	},
+};
+
+const defaultSeq = { group: 'None', seq: -1, label: 'None' };
+const defaultLink = {
+	id: '-1',
+	label: 'None',
+	from_id: '-1',
+	to_id: '-1',
+	type: 'None',
+	story: 'None',
+	sequence: defaultSeq,
+	optional: false,
+	synchronous: false,
+	unreliable: false,
+};
+const defaultNode = {
+	id: '-1',
+	label: 'None',
+	story: 'None',
+	type: 'None',
 };
 
 module.exports = resolvers;
