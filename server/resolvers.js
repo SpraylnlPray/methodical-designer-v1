@@ -1,4 +1,7 @@
 // todo: Integer handling from Neo4j to JS
+const {defaultLink} = require( './defaults' );
+const {defaultNode} = require( './defaults' );
+const {defaultSeq} = require( './defaults' );
 
 const resolvers = {
 	Query: {},
@@ -8,7 +11,7 @@ const resolvers = {
 			const query = `
 				CREATE (n:Node:${ args.type } {id: randomUUID(), label: $label, story: $story, type: $type}) 
 				RETURN n`;
-			let results = await session.run( query, args );
+			const results = await session.run( query, args );
 			return {
 				success: true,
 				node: results.records.map( record => record.get( 'n' ).properties )[0],
@@ -36,7 +39,8 @@ const resolvers = {
 
 			// if user specified a sequence on a link
 			if ( args.sequence ) {
-				let args2 = { sequence: args.sequence, link_id: ret.link.id };
+				// todo: does Sequence need an UUID?
+				const qargs = { sequence: args.sequence, link_id: ret.link.id };
 				// create Sequence node in neo4j and connect it to the Link node
 				query = `
 					CREATE (s:Sequence {id: randomUUID()})
@@ -44,7 +48,7 @@ const resolvers = {
 					WITH s AS s
 					MATCH (l:Link) WHERE l.id = $link_id CREATE (l)-[:IS]->(s)-[:ON]->(l)
 					RETURN s AS seq`;
-				results = await session.run( query, args2 );
+				results = await session.run( query, qargs );
 				ret.seq = results.records[0].get( 'seq' ).properties;
 			}
 			return ret;
@@ -52,7 +56,7 @@ const resolvers = {
 		async UpdateNode( _, args, ctx ) {
 			const session = ctx.driver.session();
 			const query = `MATCH (n:Node) WHERE n.id = $id SET n += $props RETURN n`;
-			let results = await session.run( query, args );
+			const results = await session.run( query, args );
 			return {
 				success: true,
 				node: results.records.map( record => record.get( 'n' ).properties )[0],
@@ -62,7 +66,7 @@ const resolvers = {
 			// todo: create one big query?
 
 			const session = ctx.driver.session();
-			const qargs = { id: args.id, props: args.props };
+			const qargs = { id: args.id, props: args.props, sequence: args.sequence };
 			let ret = { success: true, link: defaultLink, from: defaultNode, to: defaultNode, seq: defaultSeq };
 			// only changed data will be sent - because of that I can check for existence in the props object
 			// if property exists, it changed
@@ -74,34 +78,34 @@ const resolvers = {
 					SET l += $props
 					RETURN l AS link
 				`;
-				let results = await session.run( query, qargs );
+				const results = await session.run( query, qargs );
 				ret.link = results.records[0].get( 'link' ).properties;
 				// did 'to' node change?
 				// delete current relation and set new relation
 				if ( args.props.to_id ) {
 					const query = `
-					MATCH (l:Link)-[r:ON]->(:Node) WHERE l.id = $id
-					DELETE r
-					WITH l AS l
-					MATCH (to:Node) WHERE to.id = $props.to_id
-					CREATE (l)-[:ON]->(to)
-					RETURN to
-				`;
-					let results = await session.run( query, qargs );
+						MATCH (l:Link)-[r:ON]->(:Node) WHERE l.id = $id
+						DELETE r
+						WITH l AS l
+						MATCH (to:Node) WHERE to.id = $props.to_id
+						CREATE (l)-[:ON]->(to)
+						RETURN to
+					`;
+					const results = await session.run( query, qargs );
 					ret.to = results.records[0].get( 'to' ).properties;
 				}
 				// did 'from' node change?
 				// delete current relation and set new relation
 				if ( args.props.from_id ) {
 					const query = `
-					MATCH (:Node)-[r:ACTION]->(l:Link) WHERE l.id = $id
-					DELETE r
-					WITH l AS l
-					MATCH (from:Node) WHERE from.id = $props.from_id
-					CREATE (from)-[:ACTION]->(l)
-					RETURN from
-				`;
-					let results = await session.run( query, qargs );
+						MATCH (:Node)-[r:ACTION]->(l:Link) WHERE l.id = $id
+						DELETE r
+						WITH l AS l
+						MATCH (from:Node) WHERE from.id = $props.from_id
+						CREATE (from)-[:ACTION]->(l)
+						RETURN from
+					`;
+					const results = await session.run( query, qargs );
 					ret.from = results.records[0].get( 'from' ).properties;
 				}
 			}
@@ -118,7 +122,6 @@ const resolvers = {
 				}
 				// if user updated/created the property, check if exists and update if so, otherwise create and set props
 				else {
-					const seqargs = { id: args.id, sequence: args.sequence };
 					const query = `
 						MATCH (l:Link) WHERE l.id = $id
 						MERGE (l)-[:IS]->(s:Sequence)-[:ON]->(l)
@@ -126,36 +129,35 @@ const resolvers = {
 						ON MATCH SET s += $sequence
 						RETURN s AS seq
 					`;
-					let results = await session.run( query, seqargs );
+					const results = await session.run( query, qargs );
 					ret.seq = results.records[0].get( 'seq' ).properties;
 				}
 			}
 
 			return ret;
 		},
-		// delete node
+		async DeleteNode( _, args, ctx ) {
+			const session = ctx.driver.session();
+			// find all links associated with node
+			// find sequence that might be on a link
+			// delete sequence
+			// delete the link
+			// delete node
+			const query = `
+				MATCH (n:Node {id: $id})
+				MATCH (n)--(l:Link)
+				OPTIONAL MATCH (l)--(s:Sequence)
+				DETACH DELETE s
+				DETACH DELETE l
+				DELETE n
+			`;
+			await session.run( query, args );
+			return {
+				success: true
+			}
+		},
 		// delete link
 	},
-};
-
-const defaultSeq = { group: 'None', seq: -1, label: 'None' };
-const defaultLink = {
-	id: '-1',
-	label: 'None',
-	from_id: '-1',
-	to_id: '-1',
-	type: 'None',
-	story: 'None',
-	sequence: defaultSeq,
-	optional: false,
-	synchronous: false,
-	unreliable: false,
-};
-const defaultNode = {
-	id: '-1',
-	label: 'None',
-	story: 'None',
-	type: 'None',
 };
 
 module.exports = resolvers;
