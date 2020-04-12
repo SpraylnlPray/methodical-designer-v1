@@ -116,11 +116,11 @@ type Mutation{
   CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
   UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
   UpdateLink(id: ID!, props: LinkInput, sequence: SequencePropertyInput): LinkOperationReturn
-  # delete node
+  DeleteNode(id: ID!): NodeOperationReturn
   # delete link
 }
 
-"Returned when performaing an operation on a node node"
+"Returned when performing an operation on a node node"
 type NodeOperationReturn implements IReturnInfo {
   success: Boolean!
   message: String
