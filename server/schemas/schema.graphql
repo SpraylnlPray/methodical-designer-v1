@@ -1,0 +1,154 @@
+scalar URI
+
+enum NodeType{
+  API
+  Command
+  Query
+  Event
+  Persistence
+  AbstractUserInterface
+  Object
+  Computation
+  Container
+  Domain
+  Invariant
+  ArchitecturalDecisionRecord
+  Definition
+}
+
+enum LinkType{
+  PartOf
+  Trigger
+  Read
+  Mutate
+  Generic
+}
+
+interface IReturnInfo {
+  message: String
+  success: Boolean!
+}
+
+interface IDisplayable{
+  "Minimal data necessary for the object to appear on screen"
+  id: ID!
+  label: String
+  story: URI
+}
+
+interface ILink{
+  "A link must know to what nodes it is connected to"
+  from_id: ID
+  to_id: ID
+  sequence: SequenceProperty
+  """
+  if optional=true then sequence MAY be used to define a set of options
+  """
+  optional: Boolean
+  synchronous: Boolean
+  "The frontend will load arrow styles according to the link type"
+  type: LinkType
+}
+
+interface INode{
+  "Shape and color will be set according to the node type"
+  type: NodeType
+}
+
+type Node implements INode & IDisplayable{
+  """
+  We're still missing something here
+  For example the API Node as described in the introduction document
+  can't take a detailed specification. Or is that also the story?
+  """
+  id: ID!
+  label: String!
+  story: URI
+  type: NodeType!
+}
+
+type Link implements ILink & IDisplayable{
+  id: ID!
+  label: String!
+  from_id: ID!
+  to_id: ID!
+  type: LinkType!
+  story: URI
+  sequence: SequenceProperty
+  optional: Boolean
+  synchronous: Boolean
+  unreliable: Boolean
+}
+
+type SequenceProperty{
+  group: String
+  seq: Int
+  label: String
+}
+
+input NodeInput {
+  label: String
+  story: URI
+  type: NodeType
+}
+
+input LinkInput {
+  label: String
+  from_id: ID
+  to_id: ID
+  type: LinkType
+  story: URI
+  sequence: SequencePropertyInput
+  optional: Boolean
+  synchronous: Boolean
+  unreliable: Boolean
+}
+
+input SequencePropertyInput {
+  group: String
+  label: String
+  seq: Int
+  remove: Boolean
+}
+
+type Mutation{
+  SeedDB: seedReturn
+
+  CreateNode(label: String!, type: NodeType!, story: URI): NodeOperationReturn
+  CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
+  UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
+  UpdateLink(id: ID!, props: LinkInput, sequence: SequencePropertyInput): LinkOperationReturn
+  DeleteNode(id: ID!): NodeOperationReturn
+  DeleteLink(id: ID!): LinkOperationReturn
+}
+
+"Returned when performing an operation on a node node"
+type NodeOperationReturn implements IReturnInfo {
+  success: Boolean!
+  message: String
+  node: Node
+}
+
+"Returned when performing an operation on a link node"
+type LinkOperationReturn implements IReturnInfo{
+  success: Boolean!
+  message: String
+  link: Link
+  from: Node
+  to: Node
+  seq: SequenceProperty
+}
+
+type seedReturn {
+  success: Boolean!
+}
+
+#type Queries{
+# get node
+# get link
+# get nodes
+# get links
+
+# get whole project (?)
+#}
+
