@@ -112,12 +112,14 @@ input SequencePropertyInput {
 }
 
 type Mutation{
+  SeedDB: seedReturn
+
   CreateNode(label: String!, type: NodeType!, story: URI): NodeOperationReturn
   CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
   UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
   UpdateLink(id: ID!, props: LinkInput, sequence: SequencePropertyInput): LinkOperationReturn
   DeleteNode(id: ID!): NodeOperationReturn
-  # delete link
+  DeleteLink(id: ID!): LinkOperationReturn
 }
 
 "Returned when performing an operation on a node node"
@@ -135,6 +137,10 @@ type LinkOperationReturn implements IReturnInfo{
   from: Node
   to: Node
   seq: SequenceProperty
+}
+
+type seedReturn {
+  success: Boolean!
 }
 
 #type Queries{

@@ -27,7 +27,7 @@ const server = new ApolloServer( {
 		return {
 			message: err.message,
 			code: err.extensions.code,
-			success: false
+			success: false,
 		};
 	},
 } );

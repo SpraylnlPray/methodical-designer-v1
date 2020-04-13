@@ -1,11 +1,21 @@
 // todo: Integer handling from Neo4j to JS
-const {defaultLink} = require( './defaults' );
-const {defaultNode} = require( './defaults' );
-const {defaultSeq} = require( './defaults' );
+const { defaultLink, defaultNode, defaultSeq } = require( './defaults' );
+const seedQuery = require( './seed' );
 
 const resolvers = {
 	Query: {},
 	Mutation: {
+		async SeedDB( _, __, ctx ) {
+			const session = ctx.driver.session();
+			const deleteQuery = `
+				MATCH (n) DETACH DELETE n
+			`;
+			await session.run( deleteQuery );
+			await session.run( seedQuery );
+			return {
+				success: true,
+			};
+		},
 		async CreateNode( _, args, ctx ) {
 			const session = ctx.driver.session();
 			const query = `
@@ -153,10 +163,22 @@ const resolvers = {
 			`;
 			await session.run( query, args );
 			return {
-				success: true
-			}
+				success: true,
+			};
 		},
-		// delete link
+		async DeleteLink( _, args, ctx ) {
+			const session = ctx.driver.session();
+			const query = `
+				MATCH (l:Link {id: $id})
+				OPTIONAL MATCH (l)--(s:Sequence)
+				DETACH DELETE s
+				DETACH DELETE l
+			`;
+			await session.run( query, args );
+			return {
+				success: true,
+			};
+		},
 	},
 };
 
