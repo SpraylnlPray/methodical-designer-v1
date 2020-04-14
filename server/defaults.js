@@ -1,4 +1,10 @@
-const defaultSeq = { group: 'None', seq: -1, label: 'None' };
+const defaultSeq = {
+	group: 'None',
+	seq: -1,
+	label: 'None',
+	synchronous: false,
+	unreliable: false,
+};
 const defaultLink = {
 	id: '-1',
 	label: 'None',
@@ -8,8 +14,7 @@ const defaultLink = {
 	story: 'None',
 	sequence: defaultSeq,
 	optional: false,
-	synchronous: false,
-	unreliable: false,
+
 };
 const defaultNode = {
 	id: '-1',
@@ -17,5 +22,6 @@ const defaultNode = {
 	story: 'None',
 	type: 'None',
 };
+const defaultLinkEnd = { note: 'None', arrow: 'default' };
 
-module.exports = { defaultSeq, defaultLink, defaultNode };
+module.exports = { defaultSeq, defaultLink, defaultNode, defaultLinkEnd };

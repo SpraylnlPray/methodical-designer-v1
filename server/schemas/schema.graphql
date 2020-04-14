@@ -24,7 +24,11 @@ enum LinkType{
   Generic
 }
 
-interface IReturnInfo {
+enum ArrowType{
+  default
+}
+
+interface IReturnInfo{
   success: Boolean!
   message: String
 }
@@ -37,15 +41,18 @@ interface IDisplayable{
 }
 
 interface ILink{
-  "A link must know to what nodes it is connected to"
+  """
+  A link must know to what nodes it is connected to
+  """
   x_id: ID!
   y_id: ID!
+  x_end: LinkEnd
+  y_end: LinkEnd
   sequence: SequenceProperty
   """
   if optional=true then sequence MAY be used to define a set of options
   """
   optional: Boolean
-  "The frontend will load arrow styles according to the link type"
   type: LinkType
 }
 
@@ -70,6 +77,8 @@ type Link implements ILink & IDisplayable{
   x_id: ID!
   y_id: ID!
   type: LinkType!
+  x_end: LinkEnd
+  y_end: LinkEnd
   story: URI
   sequence: SequenceProperty
   optional: Boolean
@@ -80,69 +89,77 @@ type SequenceProperty{
   seq: Int
 }
 
-input NodeInput {
+input NodeInput{
   label: String
   story: URI
   type: NodeType
-}
-
-input LinkInput {
-  label: String
-  x_id: ID
-  y_id: ID
-  type: LinkType
-  story: URI
-  sequence: SequencePropertyInput
-  optional: Boolean
   synchronous: Boolean
   unreliable: Boolean
 }
 
-input SequencePropertyInput {
+type LinkEnd{
+  note: String
+  arrow: ArrowType
+}
+
+input LinkInput{
+  label: String
+  x_id: ID
+  y_id: ID
+  x_end: LinkEndInput
+  y_end: LinkEndInput
+  type: LinkType
+  story: URI
+  sequence: SequencePropertyInput
+  optional: Boolean
+}
+
+input LinkEndInput{
+  note: String
+  arrow: ArrowType
+}
+
+input SequencePropertyInput{
   group: String
   label: String
   seq: Int
   remove: Boolean
 }
-
+# todo: in create link is SequenceProeprtyInput in LinkInput and also as query argument!
 type Mutation{
   SeedDB: seedReturn
 
-  CreateNode(label: String!, type: NodeType!, story: URI): NodeOperationReturn
-  CreateLink(label: String!, x_id: ID!, y_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
+  CreateNode(label: String!, type: NodeType!, props: NodeInput): NodeOperationReturn
+  CreateLink(label: String!, x_id: ID!, y_id: ID!, type: LinkType!, props: LinkInput): LinkOperationReturn
   UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
   UpdateLink(id: ID!, props: LinkInput, sequence: SequencePropertyInput): LinkOperationReturn
   DeleteNode(id: ID!): NodeOperationReturn
   DeleteLink(id: ID!): LinkOperationReturn
 }
 
-"Returned when performing an operation on a node node"
+"""
+Returned when performing an operation on a node node
+"""
 type NodeOperationReturn implements IReturnInfo {
   success: Boolean!
   message: String
   node: Node
 }
 
-"Returned when performing an operation on a link node"
+"""
+Returned when performing an operation on a link node
+"""
 type LinkOperationReturn implements IReturnInfo{
   success: Boolean!
   message: String
   link: Link
   x: Node
   y: Node
+  x_end: LinkEnd
+  y_end: LinkEnd
   seq: SequenceProperty
 }
 
 type seedReturn {
   success: Boolean!
 }
-
-#type Queries{
-# get node
-# get link
-# get nodes
-# get links
-
-# get whole project (?)
-#}
-
