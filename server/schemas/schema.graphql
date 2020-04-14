@@ -25,8 +25,8 @@ enum LinkType{
 }
 
 interface IReturnInfo {
-  message: String
   success: Boolean!
+  message: String
 }
 
 interface IDisplayable{
@@ -38,52 +38,46 @@ interface IDisplayable{
 
 interface ILink{
   "A link must know to what nodes it is connected to"
-  from_id: ID
-  to_id: ID
+  x_id: ID!
+  y_id: ID!
   sequence: SequenceProperty
   """
   if optional=true then sequence MAY be used to define a set of options
   """
   optional: Boolean
-  synchronous: Boolean
   "The frontend will load arrow styles according to the link type"
   type: LinkType
 }
 
 interface INode{
-  "Shape and color will be set according to the node type"
-  type: NodeType
+  type: NodeType!
+  synchronous: Boolean
+  unreliable: Boolean
 }
 
 type Node implements INode & IDisplayable{
-  """
-  We're still missing something here
-  For example the API Node as described in the introduction document
-  can't take a detailed specification. Or is that also the story?
-  """
   id: ID!
   label: String!
-  story: URI
   type: NodeType!
+  story: URI
+  synchronous: Boolean
+  unreliable: Boolean
 }
 
 type Link implements ILink & IDisplayable{
   id: ID!
   label: String!
-  from_id: ID!
-  to_id: ID!
+  x_id: ID!
+  y_id: ID!
   type: LinkType!
   story: URI
   sequence: SequenceProperty
   optional: Boolean
-  synchronous: Boolean
-  unreliable: Boolean
 }
 
 type SequenceProperty{
   group: String
   seq: Int
-  label: String
 }
 
 input NodeInput {
@@ -94,8 +88,8 @@ input NodeInput {
 
 input LinkInput {
   label: String
-  from_id: ID
-  to_id: ID
+  x_id: ID
+  y_id: ID
   type: LinkType
   story: URI
   sequence: SequencePropertyInput
@@ -115,7 +109,7 @@ type Mutation{
   SeedDB: seedReturn
 
   CreateNode(label: String!, type: NodeType!, story: URI): NodeOperationReturn
-  CreateLink(label: String!, from_id: ID!, to_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
+  CreateLink(label: String!, x_id: ID!, y_id: ID!, type: LinkType!, sequence: SequencePropertyInput, props: LinkInput): LinkOperationReturn
   UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
   UpdateLink(id: ID!, props: LinkInput, sequence: SequencePropertyInput): LinkOperationReturn
   DeleteNode(id: ID!): NodeOperationReturn
@@ -134,8 +128,8 @@ type LinkOperationReturn implements IReturnInfo{
   success: Boolean!
   message: String
   link: Link
-  from: Node
-  to: Node
+  x: Node
+  y: Node
   seq: SequenceProperty
 }
 
