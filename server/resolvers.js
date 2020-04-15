@@ -88,6 +88,7 @@ const resolvers = {
 				success: true,
 			};
 		},
+
 		async CreateNode( _, args, ctx ) {
 			const session = ctx.driver.session();
 			const query = `
@@ -135,13 +136,14 @@ const resolvers = {
 		},
 		async CreateLinkEnd( _, args, ctx ) {
 			const session = ctx.driver.session();
+			args = TakeKeysFromProps( args, 'xy' );
 			let ret = { success: true };
 			const query = `
 				CREATE (le:LinkEnd {id: randomUUID()})
 				SET le += $props
 				WITH le AS le
 				MATCH (l:Link) WHERE l.id = $link_id
-				CREATE (l)-[:${ args.props.xy.toUpperCase() }_END]->(le)
+				CREATE (l)-[:${ args.xy.toUpperCase() }_END]->(le)
 				RETURN le AS end, l AS link
 			`;
 			const results = await session.run( query, args );
@@ -172,7 +174,7 @@ const resolvers = {
 			if ( args.props.x_id ) {
 				query += `
 					WITH l AS l
-					MATCH (l)-[r:X_NODE]->(:Node)
+					OPTIONAL MATCH (l)-[r:X_NODE]->(:Node)
 					DELETE r
 					WITH l AS l
 					MATCH (n:Node) WHERE n.id = $props.x_id
@@ -182,7 +184,7 @@ const resolvers = {
 			if ( args.props.y_id ) {
 				query += `
 					WITH l AS l
-					MATCH (l)-[r:Y_NODE]->(:Node)
+					OPTIONAL MATCH (l)-[r:Y_NODE]->(:Node)
 					DELETE r
 					WITH l AS l
 					MATCH (n:Node) WHERE n.id = $props.y_id
@@ -193,6 +195,7 @@ const resolvers = {
 				RETURN l as link
 			`;
 			const results = await session.run( query, args );
+
 			ret = AssignSafely( ret, results.records[0], 'link' );
 			return ret;
 		},
@@ -222,6 +225,55 @@ const resolvers = {
 			const results = await session.run( query, args );
 			ret = AssignSafely( ret, results.records[0], 'end', 'link' );
 			return ret;
+		},
+
+		async DeleteNode( _, args, ctx ) {
+			const session = ctx.driver.session();
+			const query = `
+				MATCH (n:Node) WHERE n.id = $id
+				OPTIONAL MATCH (n)-[:X_NODE]-(l:Link)
+				SET l.x_id = ""
+				WITH n AS n
+				OPTIONAL MATCH (n)-[:Y_NODE]-(l:Link)
+				SET l.y_id = ""
+				DETACH DELETE n
+			`;
+			await session.run( query, args );
+			return { success: true };
+		},
+		async DeleteLink( _, args, ctx ) {
+			const session = ctx.driver.session();
+			const query = `
+				MATCH (l:Link) WHERE l.id = $id
+				OPTIONAL MATCH (l)--(le:LinkEnd)
+				DETACH DELETE le
+				WITH l AS l
+				OPTIONAL MATCH (l)--(s:Sequence)
+				DETACH DELETE s
+				DETACH DELETE l
+			`;
+			await session.run( query, args );
+			return { success: true };
+		},
+		async DeleteSequence( _, args, ctx ) {
+			const session = ctx.driver.session();
+			const query = `
+				MATCH (l:Link) WHERE l.id = $link_id
+				MATCH (l)-[:IS]->(s:Sequence)
+				DETACH DELETE s
+			`;
+			await session.run( query, args );
+			return { success: true };
+		},
+		async DeleteLinkEnd( _, args, ctx ) {
+			const session = ctx.driver.session();
+			const query = `
+				MATCH (l:Link) WHERE l.id = $link_id
+				MATCH (l)-[:${ args.xy.toUpperCase() }_END]->(le:LinkEnd)
+				DETACH DELETE le
+			`;
+			await session.run( query, args );
+			return { success: true };
 		},
 	},
 };
