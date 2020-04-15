@@ -44,8 +44,8 @@ interface ILink{
   """
   A link must know to what nodes it is connected to
   """
-  x_id: ID!
-  y_id: ID!
+  x: Node!
+  y: Node!
   x_end: LinkEnd
   y_end: LinkEnd
   sequence: SequenceProperty
@@ -74,8 +74,8 @@ type Node implements INode & IDisplayable{
 type Link implements ILink & IDisplayable{
   id: ID!
   label: String!
-  x_id: ID!
-  y_id: ID!
+  x: Node!
+  y: Node!
   type: LinkType!
   x_end: LinkEnd
   y_end: LinkEnd
@@ -97,6 +97,12 @@ input NodeInput{
   unreliable: Boolean
 }
 
+input NodeCreateInput{
+  synchronous: Boolean
+  unreliable: Boolean
+  story: URI
+}
+
 type LinkEnd{
   note: String
   arrow: ArrowType
@@ -106,58 +112,69 @@ input LinkInput{
   label: String
   x_id: ID
   y_id: ID
-  x_end: LinkEndInput
-  y_end: LinkEndInput
   type: LinkType
   story: URI
-  sequence: SequencePropertyInput
+  optional: Boolean
+}
+
+input LinkCreateInput{
+  story: URI
   optional: Boolean
 }
 
 input LinkEndInput{
   note: String
+  xy: String!
   arrow: ArrowType
 }
 
 input SequencePropertyInput{
   group: String
-  label: String
   seq: Int
-  remove: Boolean
 }
-# todo: in create link is SequenceProeprtyInput in LinkInput and also as query argument!
+
 type Mutation{
   SeedDB: seedReturn
+  CreateNode(label: String!, type: NodeType!, props: NodeCreateInput): NodeOperationReturn
+  CreateLink(label: String!, x_id: ID!, y_id: ID!, type: LinkType!, props: LinkCreateInput): LinkOperationReturn
+  CreateSequence(link_id: ID!, props: SequencePropertyInput): SequenceOperationReturn
+  CreateLinkEnd(link_id: ID!, props: LinkEndInput): LinkEndOperationReturn
 
-  CreateNode(label: String!, type: NodeType!, props: NodeInput): NodeOperationReturn
-  CreateLink(label: String!, x_id: ID!, y_id: ID!, type: LinkType!, props: LinkInput): LinkOperationReturn
   UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
-  UpdateLink(id: ID!, props: LinkInput, sequence: SequencePropertyInput): LinkOperationReturn
-  DeleteNode(id: ID!): NodeOperationReturn
-  DeleteLink(id: ID!): LinkOperationReturn
+  UpdateLink(id: ID!, props: LinkInput): LinkOperationReturn
+  UpdateSequence(link_id: ID!, props: SequencePropertyInput): SequenceOperationReturn
+  UpdateLinkEnd(link_id: ID!, props: LinkEndInput): LinkEndOperationReturn
 }
 
-"""
-Returned when performing an operation on a node node
-"""
+type Query{
+  LinkById(id: ID!): Link
+  NodeById(id: ID!): Node
+}
+
+type SequenceOperationReturn implements IReturnInfo{
+  success: Boolean!
+  message: String
+  seq: SequenceProperty
+  link: Link
+}
+
+type LinkEndOperationReturn implements IReturnInfo{
+  message: String
+  success: Boolean!
+  link: Link
+  end: LinkEnd
+}
+
 type NodeOperationReturn implements IReturnInfo {
   success: Boolean!
   message: String
   node: Node
 }
 
-"""
-Returned when performing an operation on a link node
-"""
 type LinkOperationReturn implements IReturnInfo{
   success: Boolean!
   message: String
   link: Link
-  x: Node
-  y: Node
-  x_end: LinkEnd
-  y_end: LinkEnd
-  seq: SequenceProperty
 }
 
 type seedReturn {
