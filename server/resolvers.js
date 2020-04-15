@@ -1,6 +1,4 @@
 // todo: Integer handling from Neo4j to JS
-// todo: find solution for "resolve function for XY returned undefined"
-const { defaultLink, defaultLinkEnd } = require( './defaults' );
 const seedQuery = require( './seed' );
 
 const resolvers = {
@@ -12,7 +10,10 @@ const resolvers = {
 				RETURN l
 			`;
 			const results = await session.run( query, args );
-			return results.records[0].get( 'l' ).properties;
+			if ( results.records.length > 0 ) {
+				return results.records[0].get( 'l' ).properties;
+			}
+			return null;
 		},
 		async NodeById( _, args, ctx ) {
 			const session = ctx.driver.session();
@@ -21,7 +22,10 @@ const resolvers = {
 				RETURN n
 			`;
 			const results = await session.run( query, args );
-			return results.records[0].get( 'n' ).properties;
+			if ( results.records.length > 0 ) {
+				return results.records[0].get( 'n' ).properties;
+			}
+			return null;
 		},
 	},
 	Link: {
@@ -33,7 +37,10 @@ const resolvers = {
 				RETURN n
 			`;
 			const results = await session.run( query, parent );
-			return results.records[0].get( 'n' ).properties;
+			if ( results.records.length > 0 ) {
+				return results.records[0].get( 'n' ).properties;
+			}
+			return null;
 		},
 		y: async( parent, _, ctx ) => {
 			const session = ctx.driver.session();
@@ -43,7 +50,10 @@ const resolvers = {
 				RETURN n
 			`;
 			const results = await session.run( query, parent );
-			return results.records[0].get( 'n' ).properties;
+			if ( results.records.length > 0 ) {
+				return results.records[0].get( 'n' ).properties;
+			}
+			return null;
 		},
 		x_end: async( parent, _, ctx ) => {
 			const session = ctx.driver.session();
@@ -53,7 +63,10 @@ const resolvers = {
 				RETURN le
 			`;
 			const results = await session.run( query, parent );
-			return results.records[0].get( 'le' ).properties;
+			if ( results.records.length > 0 ) {
+				return results.records[0].get( 'le' ).properties;
+			}
+			return null;
 		},
 		y_end: async( parent, _, ctx ) => {
 			const session = ctx.driver.session();
@@ -63,7 +76,10 @@ const resolvers = {
 				RETURN le
 			`;
 			const results = await session.run( query, parent );
-			return results.records[0].get( 'le' ).properties;
+			if ( results.records.length > 0 ) {
+				return results.records[0].get( 'le' ).properties;
+			}
+			return null;
 		},
 		sequence: async( parent, _, ctx ) => {
 			const session = ctx.driver.session();
@@ -73,7 +89,10 @@ const resolvers = {
 				RETURN s
 			`;
 			const results = await session.run( query, parent );
-			return results.records[0].get( 's' ).properties;
+			if ( results.records.length > 0 ) {
+				return results.records[0].get( 's' ).properties;
+			}
+			return null;
 		},
 	},
 	Mutation: {
@@ -98,12 +117,11 @@ const resolvers = {
 			const results = await session.run( query, args );
 			return {
 				success: true,
-				node: results.records.map( record => record.get( 'n' ).properties )[0],
+				node: Get( results, 'n' ),
 			};
 		},
 		async CreateLink( _, args, ctx ) {
 			const session = ctx.driver.session();
-			let ret = { success: true };
 			const query = `
 				CREATE (l:Link:${ args.type } {id: randomUUID()})
 				SET l += {x_id: $x_id, y_id: $y_id, type: $type, label: $label}
@@ -113,59 +131,65 @@ const resolvers = {
 				WITH l AS l, x AS x
 				MATCH (y:Node) WHERE y.id = $y_id
 				CREATE (l)-[:Y_NODE]->(y)
-				RETURN l AS link
+				RETURN l
 			`;
 			const results = await session.run( query, args );
-			ret = AssignSafely( ret, results.records[0], 'link' );
-			return ret;
+			return {
+				success: true,
+				link: Get( results, 'l' ),
+			};
 		},
 		async CreateSequence( _, args, ctx ) {
 			const session = ctx.driver.session();
-			let ret = { success: true };
 			const query = `
 				CREATE (s:Sequence {id: randomUUID()})
 				SET s += $props
 				WITH s AS s
 				MATCH (l:Link) WHERE l.id = $link_id
 				CREATE (l)-[:IS]->(s)
-				RETURN s AS seq, l AS link
+				RETURN s, l
 			`;
 			const results = await session.run( query, args );
-			ret = AssignSafely( ret, results.records[0], 'seq', 'link' );
-			return ret;
+			return {
+				success: true,
+				seq: Get( results, 's' ),
+				link: Get( results, 'l' ),
+			};
 		},
 		async CreateLinkEnd( _, args, ctx ) {
 			const session = ctx.driver.session();
 			args = TakeKeysFromProps( args, 'xy' );
-			let ret = { success: true };
 			const query = `
 				CREATE (le:LinkEnd {id: randomUUID()})
 				SET le += $props
 				WITH le AS le
 				MATCH (l:Link) WHERE l.id = $link_id
 				CREATE (l)-[:${ args.xy.toUpperCase() }_END]->(le)
-				RETURN le AS end, l AS link
+				RETURN le, l
 			`;
 			const results = await session.run( query, args );
-			ret = AssignSafely( ret, results.records[0], 'end', 'link' );
-			return ret;
+			return {
+				success: true,
+				link: Get( results, 'l' ),
+				end: Get( results, 'le' ),
+			};
 		},
 
 		async UpdateNode( _, args, ctx ) {
-			let ret = { success: true };
 			const session = ctx.driver.session();
 			const query = `
 				MATCH (n:Node) WHERE n.id = $id
 				SET n += $props
-				RETURN n as node
+				RETURN n
 			`;
 			const results = await session.run( query, args );
-			ret = AssignSafely( ret, results.records[0], 'node' );
-			return ret;
+			return {
+				success: true,
+				node: Get( results, 'n' ),
+			};
 		},
 		async UpdateLink( _, args, ctx ) {
 			const session = ctx.driver.session();
-			let ret = { success: true };
 			let query = `
 				MATCH (l:Link) WHERE l.id = $id
 				SET l += $props
@@ -192,39 +216,45 @@ const resolvers = {
 				`;
 			}
 			query += `
-				RETURN l as link
+				RETURN l
 			`;
 			const results = await session.run( query, args );
 
-			ret = AssignSafely( ret, results.records[0], 'link' );
-			return ret;
+			return {
+				success: true,
+				link: Get( results, 'l' ),
+			};
 		},
 		async UpdateSequence( _, args, ctx ) {
 			const session = ctx.driver.session();
-			let ret = { success: true };
 			const query = `
 				MATCH (l:Link) WHERE l.id = $link_id
 				MATCH (l)-[:IS]->(s:Sequence)
 				SET s += $props
-				RETURN l AS link, s AS seq
+				RETURN l, s
 			`;
 			const results = await session.run( query, args );
-			ret = AssignSafely( ret, results.records[0], 'link', 'seq' );
-			return ret;
+			return {
+				success: true,
+				link: Get( results, 'l' ),
+				seq: Get( results, 's' ),
+			};
 		},
 		async UpdateLinkEnd( _, args, ctx ) {
 			const session = ctx.driver.session();
 			args = TakeKeysFromProps( args, 'xy' );
-			let ret = { success: true, link: defaultLink, end: defaultLinkEnd };
 			const query = `
 				MATCH (l:Link) WHERE l.id = $link_id
 				MATCH (l)-[:${ args.xy.toUpperCase() }_END]->(le:LinkEnd)
 				SET le += $props
-				RETURN le as end, l as link
+				RETURN le, l
 			`;
 			const results = await session.run( query, args );
-			ret = AssignSafely( ret, results.records[0], 'end', 'link' );
-			return ret;
+			return {
+				success: true,
+				link: Get( results, 'l' ),
+				end: Get( results, 'le' ),
+			};
 		},
 
 		async DeleteNode( _, args, ctx ) {
@@ -290,14 +320,12 @@ function TakeKeysFromProps( object, ...keys ) {
 	return object;
 }
 
-// checks if a key was returned from the query, if so, it assigns it to the ret object
-function AssignSafely( ret, record, ...keys ) {
-	for ( let key of keys ) {
-		if ( record.keys.includes( key ) ) {
-			ret[key] = record.get( key ).properties;
-		}
+// Get a key from the return object
+function Get( results, key ) {
+	if ( results.records[0].keys.includes( key ) ) {
+		return results.records[0].get( key ).properties;
 	}
-	return ret;
+	return undefined;
 }
 
 module.exports = resolvers;

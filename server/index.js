@@ -28,6 +28,7 @@ const server = new ApolloServer( {
 			message: err.message,
 			code: err.extensions.code,
 			success: false,
+			stack: err.path
 		};
 	},
 } );

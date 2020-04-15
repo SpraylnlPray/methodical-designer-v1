@@ -14,7 +14,6 @@ const defaultLink = {
 	story: 'None',
 	sequence: defaultSeq,
 	optional: false,
-
 };
 const defaultNode = {
 	id: '-1',
