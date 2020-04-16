@@ -1,100 +1,7 @@
-// todo: Integer handling from Neo4j to JS
 const seedQuery = require( './seed' );
+const neo4j = require( 'neo4j-driver' );
 
 const resolvers = {
-	Query: {
-		async LinkById( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $id
-				RETURN l
-			`;
-			const results = await session.run( query, args );
-			if ( results.records.length > 0 ) {
-				return results.records[0].get( 'l' ).properties;
-			}
-			return null;
-		},
-		async NodeById( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (n:Node) WHERE n.id = $id
-				RETURN n
-			`;
-			const results = await session.run( query, args );
-			if ( results.records.length > 0 ) {
-				return results.records[0].get( 'n' ).properties;
-			}
-			return null;
-		},
-	},
-	Link: {
-		x: async( parent, _, ctx ) => {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $id
-				MATCH (l)-[:X_NODE]->(n:Node)
-				RETURN n
-			`;
-			const results = await session.run( query, parent );
-			if ( results.records.length > 0 ) {
-				return results.records[0].get( 'n' ).properties;
-			}
-			return null;
-		},
-		y: async( parent, _, ctx ) => {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $id
-				MATCH (l)-[:Y_NODE]->(n:Node)
-				RETURN n
-			`;
-			const results = await session.run( query, parent );
-			if ( results.records.length > 0 ) {
-				return results.records[0].get( 'n' ).properties;
-			}
-			return null;
-		},
-		x_end: async( parent, _, ctx ) => {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $id
-				MATCH (l)-[:X_END]->(le:LinkEnd)
-				RETURN le
-			`;
-			const results = await session.run( query, parent );
-			if ( results.records.length > 0 ) {
-				return results.records[0].get( 'le' ).properties;
-			}
-			return null;
-		},
-		y_end: async( parent, _, ctx ) => {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $id
-				MATCH (l)-[:Y_END]->(le:LinkEnd)
-				RETURN le
-			`;
-			const results = await session.run( query, parent );
-			if ( results.records.length > 0 ) {
-				return results.records[0].get( 'le' ).properties;
-			}
-			return null;
-		},
-		sequence: async( parent, _, ctx ) => {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $id
-				MATCH (l)-[:IS]->(s:Sequence)
-				RETURN s
-			`;
-			const results = await session.run( query, parent );
-			if ( results.records.length > 0 ) {
-				return results.records[0].get( 's' ).properties;
-			}
-			return null;
-		},
-	},
 	Mutation: {
 		async SeedDB( _, __, ctx ) {
 			const session = ctx.driver.session();
@@ -140,6 +47,7 @@ const resolvers = {
 			};
 		},
 		async CreateSequence( _, args, ctx ) {
+			args.props.seq = neo4j.int( args.props.seq );
 			const session = ctx.driver.session();
 			const query = `
 				CREATE (s:Sequence {id: randomUUID()})
@@ -150,9 +58,11 @@ const resolvers = {
 				RETURN s, l
 			`;
 			const results = await session.run( query, args );
+			const seq = Get( results, 's' );
+			seq.seq = neo4j.integer.toNumber( seq.seq );
 			return {
 				success: true,
-				seq: Get( results, 's' ),
+				seq,
 				link: Get( results, 'l' ),
 			};
 		},
@@ -227,6 +137,7 @@ const resolvers = {
 		},
 		async UpdateSequence( _, args, ctx ) {
 			const session = ctx.driver.session();
+			args.props.seq = neo4j.int( args.props.seq );
 			const query = `
 				MATCH (l:Link) WHERE l.id = $link_id
 				MATCH (l)-[:IS]->(s:Sequence)
@@ -234,10 +145,12 @@ const resolvers = {
 				RETURN l, s
 			`;
 			const results = await session.run( query, args );
+			const seq = Get( results, 's' );
+			seq.seq = neo4j.integer.toNumber( seq.seq );
 			return {
 				success: true,
 				link: Get( results, 'l' ),
-				seq: Get( results, 's' ),
+				seq,
 			};
 		},
 		async UpdateLinkEnd( _, args, ctx ) {

@@ -16,6 +16,7 @@ const driver = neo4j.driver(
 	neo4j.auth.basic( process.env.DB_USER, process.env.DB_PW ),
 );
 
+// need to tell the schema to use @cypher
 const schema = makeAugmentedSchema( { typeDefs, resolvers } );
 
 const server = new ApolloServer( {
@@ -28,7 +29,7 @@ const server = new ApolloServer( {
 			message: err.message,
 			code: err.extensions.code,
 			success: false,
-			stack: err.path
+			stack: err.path,
 		};
 	},
 } );

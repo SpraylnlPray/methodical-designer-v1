@@ -1,3 +1,5 @@
+directive @cypher(statement: String!) on FIELD_DEFINITION | FIELD
+
 scalar URI
 
 enum NodeType{
@@ -44,20 +46,21 @@ interface ILink{
   """
   A link must know to what nodes it is connected to
   """
-  x: Node!
-  y: Node!
-  x_end: LinkEnd
-  y_end: LinkEnd
-  sequence: SequenceProperty
+  type: LinkType!
+  x: Node! @cypher(statement: "MATCH (this)-[:X_NODE]->(n:Node) RETURN n")
+  y: Node! @cypher(statement: "MATCH (this)-[:Y_NODE]->(n:Node) RETURN n")
+  x_end: LinkEnd @cypher(statement: "MATCH (this)-[:X_END]->(le:LinkEnd) RETURN le")
+  y_end: LinkEnd @cypher(statement: "MATCH (this)-[:Y_END]->(le:LinkEnd) RETURN le")
+  sequence: SequenceProperty @cypher(statement: "MATCH (this)-[:IS]->(s:Sequence) RETURN s")
   """
   if optional=true then sequence MAY be used to define a set of options
   """
   optional: Boolean
-  type: LinkType
 }
 
 interface INode{
   type: NodeType!
+  Links: [Link] @cypher(statement: "MATCH (this)--(l:Link) RETURN l")
   synchronous: Boolean
   unreliable: Boolean
 }
@@ -67,6 +70,7 @@ type Node implements INode & IDisplayable{
   label: String!
   type: NodeType!
   story: URI
+  Links: [Link] @cypher(statement: "MATCH (this)--(l:Link) RETURN l")
   synchronous: Boolean
   unreliable: Boolean
 }
@@ -74,13 +78,13 @@ type Node implements INode & IDisplayable{
 type Link implements ILink & IDisplayable{
   id: ID!
   label: String!
-  x: Node!
-  y: Node!
   type: LinkType!
-  x_end: LinkEnd
-  y_end: LinkEnd
+  x: Node! @cypher(statement: "MATCH (this)-[:X_NODE]->(n:Node) RETURN n")
+  y: Node! @cypher(statement: "MATCH (this)-[:Y_NODE]->(n:Node) RETURN n")
+  x_end: LinkEnd @cypher(statement: "MATCH (this)-[:X_END]->(le:LinkEnd) RETURN le")
+  y_end: LinkEnd @cypher(statement: "MATCH (this)-[:Y_END]->(le:LinkEnd) RETURN le")
+  sequence: SequenceProperty @cypher(statement: "MATCH (this)-[:IS]->(s:Sequence) RETURN s")
   story: URI
-  sequence: SequenceProperty
   optional: Boolean
 }
 
@@ -154,6 +158,7 @@ type Mutation{
 type Query{
   LinkById(id: ID!): Link
   NodeById(id: ID!): Node
+  NodeByLabel(label: String!): [Node]
 }
 
 type SequenceOperationReturn implements IReturnInfo{
@@ -188,4 +193,9 @@ type seedReturn {
 
 type deleteReturn {
   success: Boolean!
+}
+
+schema {
+  mutation: Mutation
+  query: Query
 }
