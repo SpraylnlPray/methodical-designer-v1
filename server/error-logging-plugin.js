@@ -7,7 +7,7 @@ const plugin = {
 					location: error.locations[0],
 					path: error.path,
 				}) );
-				console.log( msg );
+				// console.log( 'Error:', msg );
 			},
 		};
 	},

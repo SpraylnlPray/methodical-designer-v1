@@ -1,9 +1,10 @@
 import React from 'react';
+import Create from './components/Create';
 
 function App() {
 	return (
 		<div>
-			Hello World
+			<Create inputs={ { label: '', type: '' } }/>
 		</div>
 	);
 }

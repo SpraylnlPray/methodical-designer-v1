@@ -2,8 +2,6 @@ const defaultSeq = {
 	group: 'None',
 	seq: -1,
 	label: 'None',
-	synchronous: false,
-	unreliable: false,
 };
 const defaultLink = {
 	id: '-1',
@@ -20,6 +18,8 @@ const defaultNode = {
 	label: 'None',
 	story: 'None',
 	type: 'None',
+	synchronous: false,
+	unreliable: false,
 };
 const defaultLinkEnd = { note: 'None', arrow: 'default' };
 

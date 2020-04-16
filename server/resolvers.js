@@ -1,5 +1,8 @@
 const seedQuery = require( './seed' );
 const neo4j = require( 'neo4j-driver' );
+const { defaultNode, defaultLink } = require( './defaults' );
+// todo: add try catch
+const defaultRes = { success: true, message: '' };
 
 const resolvers = {
 	Mutation: {
@@ -16,16 +19,25 @@ const resolvers = {
 		},
 
 		async CreateNode( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
+			try {
+				const session = ctx.driver.session();
+				const query = `
 				CREATE (n:Node:${ args.type } {id: randomUUID(), label: $label, type: $type})
 				SET n += $props
 				RETURN n`;
-			const results = await session.run( query, args );
-			return {
-				success: true,
-				node: Get( results, 'n' ),
-			};
+				const results = await session.run( query, args );
+				return {
+					...defaultRes,
+					node: PrepareReturn( results, 'n', defaultNode ),
+				};
+			}
+			catch ( e ) {
+				return {
+					message: e.message,
+					success: false,
+				};
+			}
+
 		},
 		async CreateLink( _, args, ctx ) {
 			const session = ctx.driver.session();
@@ -239,6 +251,22 @@ function Get( results, key ) {
 		return results.records[0].get( key ).properties;
 	}
 	return undefined;
+}
+
+// Sets undefined properties to default values
+function SetDefaults( obj, defaultObj ) {
+	for ( let key of Object.keys( defaultObj ) ) {
+		if ( !obj[key] ) {
+			obj[key] = defaultObj[key];
+		}
+	}
+	return obj;
+}
+
+function PrepareReturn( results, key, defaultObj ) {
+	let obj = Get( results, key );
+	obj = SetDefaults( obj, defaultObj );
+	return obj;
 }
 
 module.exports = resolvers;
