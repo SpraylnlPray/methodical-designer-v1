@@ -6,6 +6,7 @@ const cors = require( 'cors' );
 const { makeAugmentedSchema } = require( 'neo4j-graphql-js' );
 const typeDefs = require( './graphql-schema' );
 const resolvers = require( './resolvers' );
+const errorPlugin = require( './error-logging-plugin' );
 
 const app = express();
 app.use( cors() );
@@ -16,7 +17,6 @@ const driver = neo4j.driver(
 	neo4j.auth.basic( process.env.DB_USER, process.env.DB_PW ),
 );
 
-// need to tell the schema to use @cypher
 const schema = makeAugmentedSchema( { typeDefs, resolvers } );
 
 const server = new ApolloServer( {
@@ -24,6 +24,9 @@ const server = new ApolloServer( {
 	schema,
 	introspection: true,
 	playground: true,
+	plugins: [
+		errorPlugin,
+	],
 	formatError: ( err ) => {
 		return {
 			message: err.message,
