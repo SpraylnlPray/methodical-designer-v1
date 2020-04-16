@@ -36,7 +36,9 @@ interface IReturnInfo{
 }
 
 interface IDisplayable{
-  "Minimal data necessary for the object to appear on screen"
+  """
+  Minimal data necessary for the object to appear on screen
+  """
   id: ID!
   label: String
   story: URI
@@ -61,6 +63,9 @@ interface ILink{
 interface INode{
   type: NodeType!
   Links: [Link] @cypher(statement: "MATCH (this)--(l:Link) RETURN l")
+  """
+  These two might change in the future
+  """
   synchronous: Boolean
   unreliable: Boolean
 }
