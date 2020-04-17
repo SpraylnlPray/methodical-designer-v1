@@ -1,6 +1,5 @@
-import React, { useReducer } from 'react';
+import React  from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
-import { useMutation } from '@apollo/react-hooks';
 import { CREATE_NODE } from '../queries/ServerMutations';
 import withFormHandling from '../HOCs/withFormHandling';
 
