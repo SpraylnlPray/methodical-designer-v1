@@ -4,7 +4,7 @@ import Create from './components/Create';
 function App() {
 	return (
 		<div>
-			<Create inputs={ { label: '', type: '' } }/>
+			<Create required={ { label: '', type: '' } } props={ { story: '', synchronous: false, unreliable: false } }/>
 		</div>
 	);
 }

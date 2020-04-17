@@ -22,7 +22,7 @@ const schema = makeAugmentedSchema( { typeDefs, resolvers } );
 const server = new ApolloServer( {
 	context: { driver },
 	schema,
-	introspection: false,
+	introspection: true,
 	playground: true,
 	plugins: [
 		errorPlugin,

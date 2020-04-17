@@ -1,6 +1,6 @@
 const seedQuery = require( './seed' );
 const neo4j = require( 'neo4j-driver' );
-const { defaultNode, defaultLink } = require( './defaults' );
+const { defaultNode } = require( './defaults' );
 // todo: add try catch
 const defaultRes = { success: true, message: '' };
 
