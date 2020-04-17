@@ -28,13 +28,14 @@ const inputReducer = ( state, action ) => {
 	}
 };
 
-function Create( fields ) {
+function Create( fieldInfos ) {
+	const fields = extractState( fieldInfos );
 	const [ inputs, setInputs ] = useReducer(
 		inputReducer,
 		fields,
 	);
 
-	const [ createNode, { data, loading, error } ] = useMutation( CREATE_NODE, { onCompleted: data => console.log( data ) } );
+	const [ createNode, { data, loading, error } ] = useMutation( CREATE_NODE );
 
 	const handleChange = ( e, data ) => {
 		const name = data.name;
@@ -54,41 +55,61 @@ function Create( fields ) {
 			alert( 'Must provide label and type!' );
 		}
 	};
-
-	return (
-		<Container>
-			<Header as='h2'>Create a Node</Header>
-			<Form>
-				<Form.Group widths='equal'>
+	// fieldInfos contains objects with information about required and optional props
+	let formElements = Object.keys( fieldInfos ).map( ( key, index1 ) => {
+		// go over both
+		return Object.keys( fieldInfos[key] ).map( ( field, index2 ) => {
+			let inputField = fieldInfos[key][field];
+			let required = key === 'required';
+			if ( inputField.type === 'text' ) {
+				return (
 					<Form.Input
+						key={index1 + '' + index2}
 						fluid
-						label='Label'
-						placeholder='Label'
+						label={ inputField.name }
+						placeholder={ inputField.name }
 						onChange={ handleChange }
-						required
-						name='label'
-						value={ inputs.required.label }
+						required={required}
+						name={ inputField.name }
+						value={ inputs.required[inputField.name] }
 					/>
+				);
+			}
+			else if ( inputField.type === 'select' ) {
+				return (
 					<Form.Select
+						key={index1 + '' + index2}
 						fluid
 						label='Type'
 						options={ options }
 						placeholder='Type'
 						onChange={ handleChange }
-						required
+						required={required}
 						name='type'
 						value={ inputs.required.type }
 					/>
-					<Form.Input
-						fluid
-						label='Story'
-						placeholder='Story'
+				);
+			}
+			else if (inputField.type === 'checkbox' ) {
+				return (
+					<Form.Checkbox
+						key={index1 + '' + index2}
+						label={ inputField.name }
 						onChange={ handleChange }
-						name='story'
-						value={ inputs.props.story }
+						checked={ inputs.props[inputField.name] }
+						name={ inputField.name }
 					/>
-					<Form.Checkbox label='Synchronous' onChange={ handleChange } name='synchronous'/>
-					<Form.Checkbox label='Unreliable' onChange={ handleChange } name='unreliable'/>
+				)
+			}
+		} );
+	} );
+	console.log( formElements );
+	return (
+		<Container>
+			<Header as='h2'>Create a Node</Header>
+			<Form>
+				<Form.Group widths='equal'>
+					{formElements}
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
 			</Form>
@@ -101,6 +122,7 @@ function Create( fields ) {
 	);
 }
 
+// check if the user entered a value for the required fields
 function enteredRequired( requiredFields ) {
 	for ( let key of Object.keys( requiredFields ) ) {
 		if ( requiredFields[key].length <= 0 ) {
@@ -108,6 +130,20 @@ function enteredRequired( requiredFields ) {
 		}
 	}
 	return true;
+}
+
+// extract an object of structure {required: {name, init}, props: {name, init}} out of the
+// information about input fields passed into the component
+function extractState( fields ) {
+	let required = {};
+	let props = {};
+	for ( let key of Object.keys( fields.required ) ) {
+		required[fields.required[key].name] = fields.required[key].init;
+	}
+	for ( let key of Object.keys( fields.props ) ) {
+		props[fields.props[key].name] = fields.props[key].init;
+	}
+	return { required, props };
 }
 
 export default Create;
