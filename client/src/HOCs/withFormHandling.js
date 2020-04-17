@@ -19,10 +19,8 @@ const inputReducer = ( state, action ) => {
 	}
 };
 
-const withFormHandling = ( FormComponent, fields, mutation ) => {
-	console.log( 'Form:', FormComponent );
-	return function() {
-		console.log( 'fields:', fields );
+const withFormHandling = ( FormComponent ) => {
+	return function( {fields, mutation} ) {
 		const [ inputs, setInputs ] = useReducer(
 			inputReducer,
 			fields,
@@ -50,8 +48,14 @@ const withFormHandling = ( FormComponent, fields, mutation ) => {
 		};
 
 		return (
-			<FormComponent inputs={ inputs } data={ data } loading={ loading } error={ error }
-										 handleChange={ handleChange } handleSubmit={ handleSubmit }/>
+			<FormComponent
+				inputs={ inputs }
+				data={ data }
+				loading={ loading }
+				error={ error }
+				handleChange={ handleChange }
+				handleSubmit={ handleSubmit }
+			/>
 		);
 	};
 };

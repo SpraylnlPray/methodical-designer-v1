@@ -1,7 +1,7 @@
-import React  from 'react';
+import React from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
-import { CREATE_NODE } from '../queries/ServerMutations';
 import withFormHandling from '../HOCs/withFormHandling';
+import Status from './Status';
 
 const options = [
 	{ text: 'API', value: 'API' },
@@ -10,7 +10,7 @@ const options = [
 	{ text: 'Abstract User Interface', value: 'AbstractUserInterface' },
 ];
 
-function Create( { inputs, data, loading, error, handleChange, handleSubmit }  ) {
+function Create( { inputs, data, loading, error, handleChange, handleSubmit } ) {
 	return (
 		<Container>
 			<Header as='h2'>Create a Node</Header>
@@ -48,18 +48,9 @@ function Create( { inputs, data, loading, error, handleChange, handleSubmit }  )
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
 			</Form>
-			{ loading && <p>Loading...</p> }
-			{ error && error.graphQLErrors.map( ( { message }, i ) => {
-				return <span key={ i }>{ message }</span>;
-			} ) }
-			{ data && <p>Created Node { data.CreateNode.node.label }</p> }
+			<Status data={data} error={error} loading={loading} />
 		</Container>
 	);
 }
 
-const fields = {
-	required: { label: '', type: '' },
-	props: { story: '', synchronous: false, unreliable: false },
-};
-
-export default withFormHandling( Create, fields, CREATE_NODE );
+export default withFormHandling( Create );
