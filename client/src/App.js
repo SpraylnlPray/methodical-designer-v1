@@ -15,8 +15,8 @@ const story = new InputField( 'story', '' );
 const synchronous = new InputField( 'synchronous', false, 'checkbox' );
 const unreliable = new InputField( 'unreliable', false, 'checkbox' );
 
-const required = { label, type };
-const props = { story, synchronous, unreliable };
+const required = [ label, type ];
+const props = [ story, synchronous, unreliable ];
 
 function App() {
 	return (

@@ -57,59 +57,58 @@ function Create( fieldInfos ) {
 	};
 	// fieldInfos contains objects with information about required and optional props
 	let formElements = Object.keys( fieldInfos ).map( ( key, index1 ) => {
-		// go over both
-		return Object.keys( fieldInfos[key] ).map( ( field, index2 ) => {
-			let inputField = fieldInfos[key][field];
+		// go over both and create the input element specified
+		return fieldInfos[key].map( ( field, index2 ) => {
 			let required = key === 'required';
-			if ( inputField.type === 'text' ) {
+			if ( field.type === 'text' ) {
 				return (
 					<Form.Input
-						key={index1 + '' + index2}
+						key={ index1 + '' + index2 }
 						fluid
-						label={ inputField.name }
-						placeholder={ inputField.name }
+						label={ field.name }
+						placeholder={ field.name }
 						onChange={ handleChange }
-						required={required}
-						name={ inputField.name }
-						value={ inputs.required[inputField.name] }
+						required={ required }
+						name={ field.name }
+						value={ inputs.required[field.name] }
 					/>
 				);
 			}
-			else if ( inputField.type === 'select' ) {
+			else if ( field.type === 'select' ) {
 				return (
 					<Form.Select
-						key={index1 + '' + index2}
+						key={ index1 + '' + index2 }
 						fluid
 						label='Type'
 						options={ options }
-						placeholder='Type'
+						placeholder={ field.name }
 						onChange={ handleChange }
-						required={required}
-						name='type'
+						required={ required }
+						name={ field.name }
 						value={ inputs.required.type }
 					/>
 				);
 			}
-			else if (inputField.type === 'checkbox' ) {
+			else if ( field.type === 'checkbox' ) {
 				return (
 					<Form.Checkbox
-						key={index1 + '' + index2}
-						label={ inputField.name }
+						key={ index1 + '' + index2 }
+						label={ field.name }
 						onChange={ handleChange }
-						checked={ inputs.props[inputField.name] }
-						name={ inputField.name }
+						checked={ inputs.props[field.name] }
+						name={ field.name }
 					/>
-				)
+				);
 			}
 		} );
 	} );
-	console.log( formElements );
+
 	return (
 		<Container>
 			<Header as='h2'>Create a Node</Header>
 			<Form>
 				<Form.Group widths='equal'>
-					{formElements}
+					{ formElements }
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
 			</Form>
@@ -137,11 +136,11 @@ function enteredRequired( requiredFields ) {
 function extractState( fields ) {
 	let required = {};
 	let props = {};
-	for ( let key of Object.keys( fields.required ) ) {
-		required[fields.required[key].name] = fields.required[key].init;
+	for ( let field of fields.required ) {
+		required[field.name] = field.init;
 	}
-	for ( let key of Object.keys( fields.props ) ) {
-		props[fields.props[key].name] = fields.props[key].init;
+	for ( let field of fields.props ) {
+		props[field.name] = field.init;
 	}
 	return { required, props };
 }
