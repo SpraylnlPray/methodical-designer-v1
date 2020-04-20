@@ -1,0 +1,24 @@
+.bordered {
+    border: 1px solid black;
+}
+
+.app {
+    margin-top: 0 !important;
+    height: 900px;
+}
+
+.interaction-pane {
+    height: 820px;
+}
+
+.margin-base{
+    margin: 10px 10px 0;
+}
+
+.input-pane{
+    height: 750px;
+}
+
+.editor-pane{
+    height: 820px;
+}
