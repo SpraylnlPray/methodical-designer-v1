@@ -14,13 +14,16 @@ const inputReducer = ( state, action ) => {
 				props[action.name] = action.value;
 				return { ...state, props };
 			}
+		case 'RESET':
+			break;
 		default:
 			return state;
 	}
 };
 
 const withFormHandling = ( FormComponent ) => {
-	return function( {fields, mutation} ) {
+	return function( { mutation, ...props } ) {
+		const fields = extractState( props.inputs );
 		const [ inputs, setInputs ] = useReducer(
 			inputReducer,
 			fields,
@@ -42,13 +45,18 @@ const withFormHandling = ( FormComponent ) => {
 					.catch( e => console.log( e ) );
 			}
 			else {
-				console.log( 'Must provide label and type!' );
-				alert( 'Must provide label and type!' );
+				console.log( 'Must provide required inputs!' );
+				alert( 'Must provide required inputs!' );
 			}
 		};
 
+		if ( data ) {
+			// todo: empty fields upon success!
+		}
+
 		return (
 			<FormComponent
+				props={ props }
 				inputs={ inputs }
 				data={ data }
 				loading={ loading }
@@ -60,6 +68,7 @@ const withFormHandling = ( FormComponent ) => {
 	};
 };
 
+// check if the user entered a value for the required fields
 function enteredRequired( requiredFields ) {
 	for ( let key of Object.keys( requiredFields ) ) {
 		if ( requiredFields[key].length <= 0 ) {
@@ -67,6 +76,20 @@ function enteredRequired( requiredFields ) {
 		}
 	}
 	return true;
+}
+
+// extract an object of structure {required: {name, init}, props: {name, init}} out of the
+// information about input fields passed into the component
+function extractState( fields ) {
+	let required = {};
+	let props = {};
+	for ( let field of Object.keys( fields.required ) ) {
+		required[field] = fields.required[field].init;
+	}
+	for ( let field of Object.keys( fields.props ) ) {
+		props[field] = fields.props[field].init;
+	}
+	return { required, props };
 }
 
 export default withFormHandling;

@@ -1,7 +1,7 @@
 const seedQuery = require( './seed' );
 const neo4j = require( 'neo4j-driver' );
-const { defaultNode } = require( './defaults' );
-// todo: add try catch
+const { defaultNode, defaultLink } = require( './defaults' );
+
 const defaultRes = { success: true, message: '' };
 
 const resolvers = {
@@ -40,8 +40,9 @@ const resolvers = {
 
 		},
 		async CreateLink( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
+			try {
+				const session = ctx.driver.session();
+				const query = `
 				CREATE (l:Link:${ args.type } {id: randomUUID()})
 				SET l += {x_id: $x_id, y_id: $y_id, type: $type, label: $label}
 				WITH l AS l
@@ -52,11 +53,18 @@ const resolvers = {
 				CREATE (l)-[:Y_NODE]->(y)
 				RETURN l
 			`;
-			const results = await session.run( query, args );
-			return {
-				success: true,
-				link: Get( results, 'l' ),
-			};
+				const results = await session.run( query, args );
+				return {
+					...defaultRes,
+					link: PrepareReturn( results, 'l', defaultLink ),
+				};
+			}
+			catch ( e ) {
+				return {
+					message: e.message,
+					success: false,
+				};
+			}
 		},
 		async CreateSequence( _, args, ctx ) {
 			args.props.seq = neo4j.int( args.props.seq );
