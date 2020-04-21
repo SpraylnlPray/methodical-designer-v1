@@ -1,28 +1,25 @@
 import React from 'react';
-import { useApolloClient } from '@apollo/react-hooks';
-import gql from 'graphql-tag';
-// import Create from './Create';
-// import NodeInputs from '../DefaultInputs/NodeInputs';
-// import { CREATE_NODE } from '../queries/ServerMutations';
+import { setActiveItem } from '../utils';
+import Create from './Create';
+import NodeInputs from '../DefaultInputs/NodeInputs';
+import { CREATE_NODE, CREATE_LINK } from '../queries/ServerMutations';
+import LinkInputs from '../DefaultInputs/LinkInputs';
 
-
-const InputPane = ( props ) => {
-	const client = useApolloClient();
-	const name = 'inputpane';
-
+const InputPane = ( { activeItem, client } ) => {
 	const handleClick = ( e ) => {
-		// dont set tells app.js to not overwrite the active item property
-		e.dontSet = true;
-		client.writeQuery( {
-			query: gql`query{activeItem}`,
-			data: { activeItem: name },
-		} );
+		// setActiveItem = false tells app.js to not overwrite the active item property
+		// a click on the input pane shouldn't change the active item
+		e.setActiveItem = false;
+		setActiveItem( client, activeItem );
 	};
 
 	return (
 		<div className='bordered input-pane margin-base' onClick={ e => handleClick( e ) }>
-			InputPane
-			{/*	Depending on activeItem (passed from InteractionPane) render createNode, createLink, or view Options*/ }
+			{ activeItem === 'createnode' &&
+			<Create inputs={ NodeInputs } mutation={ CREATE_NODE } header='Create a Node'/> }
+			{ activeItem === 'createlink' &&
+			<Create inputs={ LinkInputs } mutation={ CREATE_LINK } header='Create a Link'/> }
+
 		</div>
 	);
 };

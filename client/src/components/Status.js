@@ -1,5 +1,6 @@
 import React from 'react';
 import { Message, Icon } from 'semantic-ui-react';
+// todo: add error output for more than jsut graphql errors
 
 const Status = ( { loading, error, data } ) => {
 	let errors = {};
@@ -9,9 +10,9 @@ const Status = ( { loading, error, data } ) => {
 		) );
 	}
 	return (
-		<div>
+		<div className='status'>
 			{ loading && (
-				<Message icon>
+				<Message icon size='mini'>
 					<Icon name='circle notched' loading/>
 					<Message.Content>
 						<Message.Header>Loading...</Message.Header>
@@ -19,7 +20,7 @@ const Status = ( { loading, error, data } ) => {
 				</Message>
 			) }
 			{ error && (
-				<Message error>
+				<Message error size='mini'>
 					<Message.Header>Error!</Message.Header>
 					<Message.Content>
 						{errors}
@@ -27,7 +28,7 @@ const Status = ( { loading, error, data } ) => {
 				</Message>
 			) }
 			{ data && (
-				<Message positive>
+				<Message positive size='mini'>
 					<Message.Header>Success!</Message.Header>
 				</Message>
 			) }

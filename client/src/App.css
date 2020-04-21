@@ -11,14 +11,41 @@
     height: 820px;
 }
 
-.margin-base{
+.margin-base {
     margin: 10px 10px 0;
 }
 
-.input-pane{
+.input-pane {
     height: 730px;
 }
 
-.editor-pane{
+.editor-pane {
     height: 820px;
+}
+
+.create-form {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.create-group {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.create-required-input, .create-required-select, .create-props-input, .create-props-select {
+    width: 90%;
+}
+
+.create-input {
+    padding: 5px 0;
+}
+
+.status {
+    width: 40%;
+}
+
+.hidden {
+    visibility: hidden;
 }

@@ -1,18 +1,15 @@
 import React from 'react';
 import { Button } from 'semantic-ui-react';
+import { setActiveItem } from '../utils';
 import { useApolloClient } from '@apollo/react-hooks';
-import gql from 'graphql-tag';
 
 const OptionBar = props => {
 	const client = useApolloClient();
 
 	const handleClick = ( e ) => {
-		// dont set tells app.js to not overwrite the active item property
-		e.dontSet = true;
-		client.writeQuery( {
-			query: gql`query {activeItem}`,
-			data: { activeItem: e.target.value },
-		} );
+		// set = false tells app.js to not overwrite the active item property
+		e.setActiveItem = false;
+		setActiveItem( client, e.target.value );
 	};
 
 	return (

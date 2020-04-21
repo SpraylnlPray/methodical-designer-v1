@@ -16,6 +16,7 @@ function Create( { inputs, data, loading, error, handleChange, handleSubmit, pro
 				return (
 					<Form.Input
 						key={ index1 + '' + index2 }
+						className={ (required ? 'create-required-input' : 'create-props-input') + ' create-input'}
 						fluid
 						label={ inputField.label }
 						placeholder={ inputField.label }
@@ -29,6 +30,7 @@ function Create( { inputs, data, loading, error, handleChange, handleSubmit, pro
 			else if ( inputField.type === 'select' ) {
 				return (
 					<Form.Select
+						className={ (required ? 'create-required-select' : 'create-props-select') + ' create-input'}
 						key={ index1 + '' + index2 }
 						fluid
 						label={ inputField.label }
@@ -44,6 +46,7 @@ function Create( { inputs, data, loading, error, handleChange, handleSubmit, pro
 			else if ( inputField.type === 'checkbox' ) {
 				return (
 					<Form.Checkbox
+						className='create-input'
 						key={ index1 + '' + index2 }
 						label={ inputField.label }
 						onChange={ handleChange }
@@ -52,45 +55,18 @@ function Create( { inputs, data, loading, error, handleChange, handleSubmit, pro
 					/>
 				);
 			}
+			else {
+				return <p>Need to add handling for input type `${ inputField.type }`</p>;
+			}
 		} );
 	} );
 
 	return (
 		<Container>
 			<Header as='h2'>{ props.header }</Header>
-			<Form>
-				<Form.Group widths='equal'>
+			<Form className='create-form'>
+				<Form.Group className='create-group'>
 					{ formElements }
-
-					{/*<Form.Input*/ }
-					{/*	fluid*/ }
-					{/*	label='Label'*/ }
-					{/*	placeholder='Label'*/ }
-					{/*	onChange={ handleChange }*/ }
-					{/*	required*/ }
-					{/*	name='label'*/ }
-					{/*	value={ inputs.required.label }*/ }
-					{/*/>*/ }
-					{/*<Form.Select*/ }
-					{/*	fluid*/ }
-					{/*	label='Type'*/ }
-					{/*	options={ options }*/ }
-					{/*	placeholder='Type'*/ }
-					{/*	onChange={ handleChange }*/ }
-					{/*	required*/ }
-					{/*	name='type'*/ }
-					{/*	value={ inputs.required.type }*/ }
-					{/*/>*/ }
-					{/*<Form.Input*/ }
-					{/*	fluid*/ }
-					{/*	label='Story'*/ }
-					{/*	placeholder='Story'*/ }
-					{/*	onChange={ handleChange }*/ }
-					{/*	name='story'*/ }
-					{/*	value={ inputs.props.story }*/ }
-					{/*/>*/ }
-					{/*<Form.Checkbox label='Synchronous' onChange={ handleChange } name='synchronous'/>*/ }
-					{/*<Form.Checkbox label='Unreliable' onChange={ handleChange } name='unreliable'/>*/ }
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
 			</Form>

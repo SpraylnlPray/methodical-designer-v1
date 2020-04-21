@@ -50,10 +50,6 @@ const withFormHandling = ( FormComponent ) => {
 			}
 		};
 
-		if ( data ) {
-			// todo: empty fields upon success!
-		}
-
 		return (
 			<FormComponent
 				props={ props }
