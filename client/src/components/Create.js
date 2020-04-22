@@ -6,7 +6,6 @@ import Status from './Status';
 // inputs comes from the HOC managing the input and is the object that is saved in the state
 // props.inputs is the whole object containing information about the type of input etc. for rendering
 function Create( { inputs, data, loading, error, handleChange, handleSubmit, props } ) {
-
 	// key contains information if field is required or not
 	const formElements = Object.keys( props.inputs ).map( ( key, index1 ) => {
 		return Object.keys( props.inputs[key] ).map( ( field, index2 ) => {
@@ -16,7 +15,7 @@ function Create( { inputs, data, loading, error, handleChange, handleSubmit, pro
 				return (
 					<Form.Input
 						key={ index1 + '' + index2 }
-						className={ (required ? 'create-required-input' : 'create-props-input') + ' create-input'}
+						className={ (required ? 'create-required-input' : 'create-props-input') + ' create-input' }
 						fluid
 						label={ inputField.label }
 						placeholder={ inputField.label }
@@ -30,7 +29,7 @@ function Create( { inputs, data, loading, error, handleChange, handleSubmit, pro
 			else if ( inputField.type === 'select' ) {
 				return (
 					<Form.Select
-						className={ (required ? 'create-required-select' : 'create-props-select') + ' create-input'}
+						className={ (required ? 'create-required-select' : 'create-props-select') + ' create-input' }
 						key={ index1 + '' + index2 }
 						fluid
 						label={ inputField.label }

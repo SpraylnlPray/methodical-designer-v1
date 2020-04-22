@@ -161,6 +161,8 @@ type Mutation{
 }
 
 type Query{
+  Nodes: [Node]
+  Links: [Link]
   LinkById(id: ID!): Link
   NodeById(id: ID!): Node
   NodeByLabel(label: String!): [Node]

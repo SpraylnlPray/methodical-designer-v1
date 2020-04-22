@@ -20,11 +20,7 @@ const client = new ApolloClient( {
 } );
 
 cache.writeQuery( {
-	query: gql`
-    query {
-      activeItem
-    }
-	`,
+	query: gql`query {activeItem}`,
 	data: {
 		activeItem: '',
 	},

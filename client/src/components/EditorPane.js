@@ -1,26 +1,24 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
+import { setActiveItem } from '../utils';
 
 // import './styles.css';
 // need to import the vis network css in order to show tooltip
 // import './network.css';
 
-const EditorPane = ( props ) => {
+const EditorPane = ( { client, nodeData, linkData } ) => {
+	let nodes = {};
+	let links = {};
+	if ( nodeData && nodeData.Nodes ) {
+		nodes = nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) );
+	}
+	if ( linkData && linkData.Links ) {
+		links = linkData.Links.map( link => ({ from: link.x.id, to: link.y.id }) );
+	}
 
 	const graph = {
-		nodes: [
-			{ id: 1, label: 'Node 1', title: 'node 1 tooltip text' },
-			{ id: 2, label: 'Node 2', title: 'node 2 tooltip text' },
-			{ id: 3, label: 'Node 3', title: 'node 3 tooltip text' },
-			{ id: 4, label: 'Node 4', title: 'node 4 tooltip text' },
-			{ id: 5, label: 'Node 5', title: 'node 5 tooltip text' },
-		],
-		edges: [
-			{ from: 1, to: 2 },
-			{ from: 1, to: 3 },
-			{ from: 2, to: 4 },
-			{ from: 2, to: 5 },
-		],
+		nodes,
+		edges: links,
 	};
 
 	const options = {
@@ -36,6 +34,16 @@ const EditorPane = ( props ) => {
 	const events = {
 		select: function( event ) {
 			let { nodes, edges } = event;
+			// query local cache for node and set this as active item and pass node data to input pane
+			// setActiveItem(client, )
+			if ( nodes.length > 0 ) {
+				event.setActiveItem = false;
+				setActiveItem( client, nodes[0] );
+			}
+			else if ( edges.length > 0 ) {
+				event.setActiveItem = false;
+				setActiveItem( client, edges[0] );
+			}
 		},
 	};
 
