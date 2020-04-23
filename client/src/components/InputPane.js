@@ -7,9 +7,7 @@ import LinkInputs from '../DefaultInputs/LinkInputs';
 
 const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 	const handleClick = ( e ) => {
-		// setActiveItem = false tells app.js to not overwrite the active item property
-		// a click on the input pane shouldn't change the active item
-		e.setActiveItem = false;
+		e.stopPropagation();
 		setActiveItem( client, activeItem );
 	};
 

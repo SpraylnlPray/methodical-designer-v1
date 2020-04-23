@@ -7,8 +7,7 @@ const OptionBar = props => {
 	const client = useApolloClient();
 
 	const handleClick = ( e ) => {
-		// set = false tells app.js to not overwrite the active item property
-		e.setActiveItem = false;
+		e.stopPropagation();
 		setActiveItem( client, e.target.value );
 	};
 

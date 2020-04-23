@@ -1,6 +1,6 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
-export const setActiveItem = (client, name) => {
+export const setActiveItem = ( client, name ) => {
 	client.writeQuery( {
 		query: gql`query {activeItem}`,
 		data: { activeItem: name },

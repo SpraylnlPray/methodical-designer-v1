@@ -2,18 +2,14 @@ import React from 'react';
 import Graph from 'react-graph-vis';
 import { setActiveItem } from '../utils';
 
-// import './styles.css';
-// need to import the vis network css in order to show tooltip
-// import './network.css';
-
-const EditorPane = ( { client, nodeData, linkData } ) => {
+const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 	let nodes = {};
 	let links = {};
 	if ( nodeData && nodeData.Nodes ) {
 		nodes = nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) );
 	}
 	if ( linkData && linkData.Links ) {
-		links = linkData.Links.map( link => ({ from: link.x.id, to: link.y.id }) );
+		links = linkData.Links.map( link => ({ id: link.id, from: link.x.id, to: link.y.id }) );
 	}
 
 	const graph = {
@@ -23,27 +19,36 @@ const EditorPane = ( { client, nodeData, linkData } ) => {
 
 	const options = {
 		layout: {
-			hierarchical: true,
+			improvedLayout: true,
 		},
 		edges: {
 			color: '#000000',
+			arrows: {
+				to: { enabled: false },
+				from: { enabled: false },
+			},
 		},
 		height: '100%',
+		autoResize: true,
+		interaction: {
+			hoverConnectedEdges: false,
+			selectConnectedEdges: false,
+		},
+		physics: {
+			enabled: false,
+		},
 	};
 
 	const events = {
-		select: function( event ) {
-			let { nodes, edges } = event;
-			// query local cache for node and set this as active item and pass node data to input pane
-			// setActiveItem(client, )
-			if ( nodes.length > 0 ) {
-				event.setActiveItem = false;
-				setActiveItem( client, nodes[0] );
-			}
-			else if ( edges.length > 0 ) {
-				event.setActiveItem = false;
-				setActiveItem( client, edges[0] );
-			}
+		selectNode: function( event ) {
+			let { nodes } = event;
+			setMakeAppActive( false );
+			setActiveItem( client, nodes[0] );
+		},
+		selectEdge: function( event ) {
+			let { edges } = event;
+			setMakeAppActive( false );
+			setActiveItem( client, edges[0] );
 		},
 	};
 
