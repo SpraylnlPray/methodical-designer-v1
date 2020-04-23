@@ -25,7 +25,7 @@ function App() {
 	const { loading: linkLoading, error: linkError, data: linkData, refetch: linkRefetch } = useQuery( GET_LINKS );
 
 	return (
-		<div name='app' className='bordered app margin-base' onClick={ handleClick }>
+		<div className='bordered app margin-base' onClick={ handleClick }>
 			<Header as='h1'>Methodical Designer</Header>
 			<Grid>
 				<Grid.Row>

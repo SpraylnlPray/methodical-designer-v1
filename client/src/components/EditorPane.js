@@ -23,10 +23,19 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 		},
 		edges: {
 			color: '#000000',
+			physics: true,
+			smooth: {
+				enabled: true,
+				type: 'static',
+				roundness: 0.5,
+			},
 			arrows: {
 				to: { enabled: false },
 				from: { enabled: false },
 			},
+		},
+		nodes: {
+			physics: false,
 		},
 		height: '100%',
 		autoResize: true,
@@ -35,7 +44,7 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 			selectConnectedEdges: false,
 		},
 		physics: {
-			enabled: false,
+			enabled: true,
 		},
 	};
 
