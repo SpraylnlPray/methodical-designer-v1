@@ -1,76 +1,87 @@
 import React from 'react';
-import Graph from 'react-graph-vis';
 import { setActiveItem } from '../utils';
+import G6 from '@antv/g6';
+import ReactDOM from 'react-dom';
+
+const { useEffect } = require( 'react' );
 
 const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
-	let nodes = {};
-	let links = {};
+	let nodes = [];
+	let links = [];
 	if ( nodeData && nodeData.Nodes ) {
 		nodes = nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) );
 	}
 	if ( linkData && linkData.Links ) {
-		links = linkData.Links.map( link => ({ id: link.id, from: link.x.id, to: link.y.id }) );
+		links = linkData.Links.map( link => ({ id: link.id, source: link.x.id, target: link.y.id }) );
 	}
 
-	const graph = {
+	const data = {
 		nodes,
 		edges: links,
 	};
 
-	const options = {
-		layout: {
-			improvedLayout: true,
-		},
-		edges: {
-			color: '#000000',
-			physics: true,
-			smooth: {
-				enabled: true,
-				type: 'static',
-				roundness: 0.5,
-			},
-			arrows: {
-				to: { enabled: false },
-				from: { enabled: false },
-			},
-		},
-		nodes: {
-			physics: false,
-		},
-		height: '100%',
-		autoResize: true,
-		interaction: {
-			hoverConnectedEdges: false,
-			selectConnectedEdges: false,
-		},
-		physics: {
-			enabled: true,
-		},
-	};
+	const ref = React.useRef( null );
+	let graph = null;
 
-	const events = {
-		selectNode: function( event ) {
-			let { nodes } = event;
+	// todo: use reducer in app to tell graph to rerender when new data is there
+	useEffect( () => {
+		if ( !graph ) {
+			graph = new G6.Graph( {
+				container: ReactDOM.findDOMNode( ref.current ),
+				width: 1200,
+				height: 800,
+				modes: {
+					default: [ { type: 'drag-canvas' }, { type: 'drag-node' }, { type: 'zoom-canvas' } ],
+				},
+				layout: {
+					type: 'dagre',
+				},
+				defaultNode: {
+					type: 'node',
+					size: 40,
+					labelCfg: {
+						style: {
+							fill: '#000000A6',
+							fontSize: 12,
+						},
+					},
+					style: {
+						stroke: '#72CC4A',
+						width: 150,
+					},
+				},
+				defaultEdge: {
+					type: 'quadratic',
+					size: 5,
+					style: {
+						stroke: '#e2e2e2',
+					},
+				},
+			} );
+		}
+
+		// example here: https://g6.antv.vision/en/docs/manual/middle/g6InReact
+		graph.on( 'node:click', e => {
+			const { item } = e;
+			const { defaultCfg } = item;
+			setActiveItem( client, defaultCfg.id );
 			setMakeAppActive( false );
-			setActiveItem( client, nodes[0] );
-		},
-		selectEdge: function( event ) {
-			let { edges } = event;
+		} );
+
+		graph.on( 'edge:click', e => {
+			const { item } = e;
+			const { defaultCfg } = item;
+			setActiveItem( client, defaultCfg.id );
 			setMakeAppActive( false );
-			setActiveItem( client, edges[0] );
-		},
-	};
+		} );
+
+		graph.data( data );
+		graph.render();
+	}, [] );
 
 	return (
 		<div className='bordered editor-pane margin-base'>
-			<Graph
-				graph={ graph }
-				options={ options }
-				events={ events }
-				getNetwork={ network => {
-					//  if you want access to vis.js network api you can set the state in a parent component using this property
-				} }
-			/>
+			<div ref={ ref }/>
 		</div>
 	);
 };
