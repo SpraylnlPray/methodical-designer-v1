@@ -2,23 +2,19 @@ import React from 'react';
 import { setActiveItem } from '../utils';
 import G6 from '@antv/g6';
 import ReactDOM from 'react-dom';
+import { doubleEdgeConf } from '../GraphConfiguration/doubleEdgeDefaults';
 
 const { useEffect } = require( 'react' );
 
 const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 	let nodes = [];
 	let links = [];
-	if ( nodeData && nodeData.Nodes ) {
+	if ( nodeData?.Nodes ) {
 		nodes = nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) );
 	}
-	if ( linkData && linkData.Links ) {
-		links = linkData.Links.map( link => ({ id: link.id, source: link.x.id, target: link.y.id }) );
+	if ( linkData?.Links ) {
+		links = createLinks( linkData.Links );
 	}
-
-	const data = {
-		nodes,
-		edges: links,
-	};
 
 	const ref = React.useRef( null );
 	let graph = null;
@@ -26,6 +22,7 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 	// todo: use reducer in app to tell graph to rerender when new data is there
 	useEffect( () => {
 		if ( !graph ) {
+			G6.registerEdge( 'quadratic-label-edge', doubleEdgeConf, 'quadratic' );
 			graph = new G6.Graph( {
 				container: ReactDOM.findDOMNode( ref.current ),
 				width: 1200,
@@ -51,11 +48,8 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 					},
 				},
 				defaultEdge: {
-					type: 'quadratic',
-					size: 5,
-					style: {
-						stroke: '#e2e2e2',
-					},
+					type: 'quadratic-label-edge',
+					size: 3,
 				},
 			} );
 		}
@@ -75,6 +69,11 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 			setMakeAppActive( false );
 		} );
 
+		let data = {
+			nodes,
+			edges: links,
+		};
+
 		graph.data( data );
 		graph.render();
 	}, [] );
@@ -87,3 +86,41 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 };
 
 export default EditorPane;
+
+const createLinks = links => {
+	let ret = [];
+	let multipleLinks = [];
+	for ( let i = 0; i < links.length; i++ ) {
+		const { x: thisX, y: thisY } = links[i];
+		for ( let j = 0; j < links.length; j++ ) {
+			if ( i !== j ) {
+				const { x: testX, y: testY } = links[j];
+				if ( areSameNodes( thisX, thisY, testX, testY ) ) {
+					multipleLinks.push( links[i] );
+				}
+			}
+		}
+	}
+	links = links.filter( link => !multipleLinks.some( compareLink => link.id === compareLink.id ) );
+	multipleLinks = multipleLinks.map( link => ({
+		id: link.id,
+		source: link.x.id,
+		target: link.y.id,
+		edgeType: 'type2',
+		edgeOffset: Math.floor( Math.random() * 20 ) + 1,
+	}) );
+	links = links.map( link => ({
+		id: link.id, source: link.x.id, target: link.y.id, edgeType: 'type2',
+	}) );
+	ret = multipleLinks.concat( links );
+	console.log( ret );
+	return ret;
+};
+
+const areSameNodes = ( thisX, thisY, testX, testY ) => {
+	if ( thisX.id === testX.id && thisY.id === testY.id ||
+		thisX.id === testY.id && thisY.id === testX.id ) {
+		return true;
+	}
+	return false;
+};
