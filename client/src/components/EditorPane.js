@@ -1,56 +1,82 @@
-import React, { Component } from 'react';
+import React from 'react';
 import Graph from 'react-graph-vis';
+import { setActiveItem } from '../utils';
 
-class EditorPane extends Component {
-	constructor( props ) {
-		super( props );
-		console.log( 'in constructor' );
-		this.state = {
-			drag: false,
-			options: {
-				layout: {
-					improvedLayout: true,
-				},
-				height: '100%',
-				edges: {
-					smooth: true,
-					arrows: {
-						to: { enabled: false },
-						from: { enabled: false },
-					},
-				},
-				physics: {
-					enabled: false,
-				},
-				interaction: {
-					dragView: true,
-					hoverConnectedEdges: false,
-					selectConnectedEdges: false,
-				},
-			},
-			graph: {
-				nodes: props.nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) ),
-				edges: createLinks( props.linkData.Links ),
-			},
-		};
+const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
+	let nodes = {};
+	let links = {};
+	if ( nodeData?.Nodes ) {
+		nodes = nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) );
+	}
+	if ( linkData?.Links ) {
+		links = createLinks( linkData.Links );
 	}
 
-	render() {
-		return (
-			<div className='bordered editor-pane margin-base'>
-				<Graph
-					graph={ this.state.graph }
-					options={ this.state.options }
-					events={ this.events }
-				/>
-			</div>
-		);
-	}
-}
+	const graph = {
+		nodes,
+		edges: links,
+	};
+
+	const options = {
+		layout: {
+			improvedLayout: true,
+		},
+		edges: {
+			color: '#000000',
+			physics: true,
+			smooth: {
+				enabled: true,
+				type: 'straightCross',
+				roundness: 0.5,
+			},
+			arrows: {
+				to: { enabled: false },
+				from: { enabled: false },
+			},
+		},
+		nodes: {
+			physics: false,
+		},
+		height: '100%',
+		autoResize: true,
+		interaction: {
+			hoverConnectedEdges: false,
+			selectConnectedEdges: false,
+		},
+		physics: {
+			enabled: true,
+		},
+	};
+
+	const events = {
+		selectNode: function( event ) {
+			let { nodes } = event;
+			setMakeAppActive( false );
+			setActiveItem( client, nodes[0] );
+		},
+		selectEdge: function( event ) {
+			let { edges } = event;
+			setMakeAppActive( false );
+			setActiveItem( client, edges[0] );
+		},
+	};
+
+	return (
+		<div className='bordered editor-pane margin-base'>
+			<Graph
+				graph={ graph }
+				options={ options }
+				events={ events }
+			/>
+		</div>
+	);
+};
 
 export default EditorPane;
 
 const createLinks = links => {
+	// todo: handling for more than 2 edges
+	// todo: remove random roundness
 	let multipleLinks = [];
 	for ( let i = 0; i < links.length; i++ ) {
 		const { x: thisX, y: thisY } = links[i];

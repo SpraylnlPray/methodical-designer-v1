@@ -2,28 +2,10 @@ import React from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
 import withFormHandling from '../HOCs/withFormHandling';
 import Status from './Status';
-import { useMutation } from '@apollo/react-hooks';
-import { enteredRequired, setJustFetched } from '../utils';
 
 // inputs comes from the HOC managing the input and is the object that is saved in the state
 // props.inputs is the whole object containing information about the type of input etc. for rendering
-function CreateNode( { inputs, handleChange, props } ) {
-	const [ runMutation, { data, loading, error } ] = useMutation( props.mutation );
-
-	const handleSubmit = ( e ) => {
-		e.preventDefault();
-		if ( enteredRequired( inputs.required ) ) {
-			runMutation( { variables: { ...inputs.required, props: inputs.props } } )
-				.catch( e => console.log( e ) );
-			console.log( 'setting just fetched to true in create node' );
-			setJustFetched( props.client, true );
-		}
-		else {
-			console.log( 'Must provide required inputs!' );
-			alert( 'Must provide required inputs!' );
-		}
-	};
-
+function CreateNode( { store, data, error, loading, handleSubmit, handleChange, props } ) {
 	return (
 		<Container>
 			<Header as='h2'>Create a Node!</Header>
@@ -37,7 +19,7 @@ function CreateNode( { inputs, handleChange, props } ) {
 						onChange={ handleChange }
 						required
 						name='label'
-						value={ inputs['label'] }
+						value={ store['label'] }
 					/>
 					<Form.Select
 						className='create-required-select create-input'
@@ -48,7 +30,7 @@ function CreateNode( { inputs, handleChange, props } ) {
 						onChange={ handleChange }
 						required
 						name='type'
-						value={ inputs['type'] }
+						value={ store['type'] }
 					/>
 					<Form.Input
 						fluid
@@ -57,20 +39,20 @@ function CreateNode( { inputs, handleChange, props } ) {
 						placeholder='Story'
 						onChange={ handleChange }
 						name='story'
-						value={ inputs['story'] }
+						value={ store['story'] }
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='Synchronous'
 						onChange={ handleChange }
-						checked={ inputs['synchronous'] }
+						checked={ store['synchronous'] }
 						name='synchronous'
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='Unreliable'
 						onChange={ handleChange }
-						checked={ inputs['unreliable'] }
+						checked={ store['unreliable'] }
 						name='unreliable'
 					/>
 				</Form.Group>

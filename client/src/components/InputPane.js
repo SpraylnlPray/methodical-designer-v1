@@ -32,7 +32,7 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 				clent={ client }
 				refetch={ linkRefetch }
 				mutation={ CREATE_LINK }
-				inputs={ { required: { label: '', type: '', x_id: '', y_id: '' }, props: { story: '', optional: '' } } }
+				inputs={ { required: { label: '', type: '', x_id: '', y_id: '' }, props: { story: '', optional: false } } }
 				typeOptions={[
 					{ "text": "Part Of", "value": "PartOf" },
 					{ "text": "Trigger", "value": "Trigger" },
