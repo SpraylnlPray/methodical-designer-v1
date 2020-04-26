@@ -24,7 +24,7 @@ const inputReducer = ( state, action ) => {
 const withFormHandling = ( FormComponent ) => {
 	return function( { mutation, ...props } ) {
 		const fields = extractState( props.inputs );
-		const [ state, setState ] = useReducer(
+		const [ store, dispatch ] = useReducer(
 			inputReducer,
 			{ ...fields, justFetched: false },
 		);
@@ -35,14 +35,14 @@ const withFormHandling = ( FormComponent ) => {
 			const name = data.name;
 			const value = data.type === 'checkbox' ? data.checked : data.value;
 			const required = !!data.required;
-			setState( { type: 'ADD', required, name, value } );
+			dispatch( { type: 'ADD', required, name, value } );
 		};
 
 		const handleSubmit = ( e ) => {
 			e.preventDefault();
-			if ( enteredRequired( state.required ) ) {
-				state.justFetched = true;
-				runMutation( { variables: { ...state.required, props: state.props } } )
+			if ( enteredRequired( store.required ) ) {
+				store.justFetched = true;
+				runMutation( { variables: { ...store.required, props: store.props } } )
 					.catch( e => console.log( e ) );
 			}
 			else {
@@ -51,14 +51,14 @@ const withFormHandling = ( FormComponent ) => {
 			}
 		};
 
-		if ( data && state.justFetched ) {
+		if ( data && store.justFetched ) {
 			props.refetch();
 		}
 
 		return (
 			<FormComponent
 				props={ props }
-				inputs={ state }
+				inputs={ store }
 				data={ data }
 				loading={ loading }
 				error={ error }

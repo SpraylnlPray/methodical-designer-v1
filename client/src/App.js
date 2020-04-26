@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useReducer, useState } from 'react';
 import InteractionPane from './components/InteractionPane';
 import EditorPane from './components/EditorPane';
 import { Header, Grid } from 'semantic-ui-react';
@@ -7,9 +7,14 @@ import './App.css';
 import { setActiveItem } from './utils';
 import { GET_NODES, GET_LINKS } from './queries/ServerQueries';
 
+const appStateReducer = ( state, action ) => {
+
+};
+
 function App() {
 	const name = 'app';
 	const client = useApolloClient();
+	const [store, dispatch] = useReducer(appStateReducer, {})
 	let [ makeAppActive, setMakeAppActive ] = useState( true );
 
 	const handleClick = ( e ) => {
