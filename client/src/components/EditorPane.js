@@ -1,119 +1,134 @@
-import React from 'react';
-import { setActiveItem } from '../utils';
-import G6 from '@antv/g6';
-import ReactDOM from 'react-dom';
-import { doubleEdgeConf } from '../GraphConfiguration/doubleEdgeDefaults';
+import React, { Component } from 'react';
+import Graph from 'react-graph-vis';
 
-const { useEffect } = require( 'react' );
+let ctx;
+let network;
+let container;
+let canvas;
+let nodes;
+let rect = [];
+let drag = false;
+var drawingSurfaceImageData;
 
-const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
-	let nodes = [];
-	let links = [];
-	if ( nodeData?.Nodes ) {
-		nodes = nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) );
-	}
-	if ( linkData?.Links ) {
-		links = createLinks( linkData.Links );
-	}
-
-	let containerRef = React.useRef( null );
-	let graph = null;
-
-	useEffect( () => {
-		if ( !graph ) {
-			G6.registerEdge( 'quadratic-label-edge', doubleEdgeConf, 'quadratic' );
-			graph = new G6.Graph( {
-				container: ReactDOM.findDOMNode( containerRef.current ),
-				width: 1200,
-				height: 800,
-				modes: {
-					default: [ { type: 'drag-canvas' }, { type: 'drag-node' }, { type: 'zoom-canvas' } ],
-				},
+class EditorPane extends Component {
+	constructor( props ) {
+		super( props );
+		this.state = {
+			drag: false,
+			height: '100%',
+			options: {
 				layout: {
-					type: 'dagre',
+					improvedLayout: true,
 				},
-				defaultNode: {
-					type: 'node',
-					size: 40,
-					labelCfg: {
-						style: {
-							fill: '#000000A6',
-							fontSize: 12,
-						},
-					},
-					style: {
-						stroke: '#72CC4A',
-						width: 150,
+				edges: {
+					smooth: true,
+					arrows: {
+						to: { enabled: false },
+						from: { enabled: false },
 					},
 				},
-				defaultEdge: {
-					type: 'quadratic-label-edge',
-					size: 3,
+				physics: {
+					enabled: false,
 				},
-			} );
-		}
-
-		// example here: https://g6.antv.vision/en/docs/manual/middle/g6InReact
-		graph.on( 'node:click', e => {
-			const { item } = e;
-			const { defaultCfg } = item;
-			setActiveItem( client, defaultCfg.id );
-			setMakeAppActive( false );
-		} );
-
-		graph.on( 'edge:click', e => {
-			const { item } = e;
-			const { defaultCfg } = item;
-			setActiveItem( client, defaultCfg.id );
-			setMakeAppActive( false );
-		} );
-
-		let data = {
-			nodes,
-			edges: links,
+				interaction: {
+					dragView: true,
+					hoverConnectedEdges: false,
+					selectConnectedEdges: false,
+				},
+			},
+			graph: {
+				nodes: [
+					{
+						id: 1,
+						label: 'Node 1',
+					},
+					{
+						id: 2,
+						label: 'Node 2',
+					},
+					{
+						id: 3,
+						label: 'Node 3',
+					},
+					{
+						id: 4,
+						label: 'Node 4',
+					},
+					{
+						id: 5,
+						label: 'Node 5',
+					},
+				],
+				edges: [
+					{
+						from: 1,
+						to: 2,
+						arrows: 'to',
+						smooth: { type: 'curvedCCW', roundness: 0.5 },
+					},
+					{
+						from: 1,
+						to: 2,
+						arrows: 'to',
+						smooth: { type: 'curvedCCW', roundness: 0.2 },
+					},
+					{
+						from: 2,
+						to: 1,
+						arrows: 'to',
+						smooth: { type: 'curvedCCW', roundness: 0.3 },
+					},
+					{
+						from: 2,
+						to: 1,
+						arrows: 'to',
+						smooth: { type: 'curvedCCW', roundness: 0.1 },
+					},
+					{
+						from: 1,
+						to: 3,
+					},
+					{
+						from: 2,
+						to: 4,
+					},
+					{
+						from: 2,
+						to: 5,
+					},
+				],
+			},
 		};
+		this.canvasWrapperRef = React.createRef();
+	}
 
-		graph.data( data );
-		graph.render();
-	}, [] );
+	componentDidMount() {
+		// ref on graph <Graph/> to add listeners to, maybe?
+		console.log( 'ref:', this.canvasWrapperRef.current.Network.body.nodes );
 
-	return (
-		<div className='bordered editor-pane margin-base'>
-			<div ref={ containerRef }/>
-		</div>
-	);
-};
+		container = this.canvasWrapperRef.current.Network.canvas.frame;
+		network = this.canvasWrapperRef.current.Network;
+		canvas = this.canvasWrapperRef.current.Network.canvas.frame.canvas;
+		nodes = this.state.graph.nodes;
+		ctx = canvas.getContext( '2d' );
+
+		container.oncontextmenu = function() {
+			return false;
+		};
+	}
+
+	render() {
+		return (
+			<div className='bordered editor-pane margin-base'>
+				<Graph
+					ref={ this.canvasWrapperRef }
+					graph={ this.state.graph }
+					options={ this.state.options }
+					events={ this.events }
+				/>
+			</div>
+		);
+	}
+}
 
 export default EditorPane;
-
-const createLinks = links => {
-	let multipleLinks = [];
-	for ( let i = 0; i < links.length; i++ ) {
-		const { x: thisX, y: thisY } = links[i];
-		for ( let j = 0; j < links.length; j++ ) {
-			if ( i !== j ) {
-				const { x: testX, y: testY } = links[j];
-				if ( areSameNodes( thisX, thisY, testX, testY ) ) {
-					multipleLinks.push( links[i] );
-				}
-			}
-		}
-	}
-	links = links.filter( link => !multipleLinks.some( compareLink => link.id === compareLink.id ) );
-	multipleLinks = multipleLinks.map( link => ({
-		id: link.id,
-		source: link.x.id,
-		target: link.y.id,
-		edgeType: 'type2',
-		edgeOffset: Math.floor( Math.random() * 20 ) + 1,
-	}) );
-	links = links.map( link => ({
-		id: link.id, source: link.x.id, target: link.y.id, edgeType: 'type2',
-	}) );
-	return multipleLinks.concat( links );
-};
-
-const areSameNodes = ( thisX, thisY, testX, testY ) => {
-	return thisX.id === testX.id && thisY.id === testY.id ||
-		thisX.id === testY.id && thisY.id === testX.id;
-};
