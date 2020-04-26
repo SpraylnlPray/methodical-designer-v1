@@ -1,13 +1,9 @@
 import gql from 'graphql-tag';
 
 export const GET_ACTIVE_ITEM = gql`
-	{
-		activeItem @client
-	}
+  query { activeItem @client }
 `;
 
-export const GET_LOCAL_NODES = gql`
-	query {
-		nodes @client
-	}
+export const GET_JUST_FETCHED = gql`
+  query { justFetched @client }
 `;

@@ -1,9 +1,8 @@
 import React from 'react';
 import { setActiveItem } from '../utils';
-import Create from './Create';
-import NodeInputs from '../DefaultInputs/NodeInputs';
+import CreateLink from './CreateLink';
+import CreateNode from './CreateNode';
 import { CREATE_NODE, CREATE_LINK } from '../queries/ServerMutations';
-import LinkInputs from '../DefaultInputs/LinkInputs';
 
 const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 	const handleClick = ( e ) => {
@@ -14,12 +13,34 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 	return (
 		<div className='bordered input-pane margin-base' onClick={ e => handleClick( e ) }>
 			{ activeItem === 'createnode' &&
-			<Create refetch={ nodeRefetch } inputs={ NodeInputs } mutation={ CREATE_NODE }
-							header='Create a Node'/> }
-			{ activeItem === 'createlink' &&
-			<Create refetch={ linkRefetch } inputs={ LinkInputs } mutation={ CREATE_LINK }
-							header='Create a Link'/> }
+			<CreateNode
+				client={ client }
+				refetch={ nodeRefetch }
+				mutation={ CREATE_NODE }
+				inputs={ { required: { label: '', type: '' }, props: { story: '', synchronous: false, unreliable: false } } }
+				typeOptions={ [
+					{ 'text': 'API', 'value': 'API' },
+					{ 'text': 'Event', 'value': 'Event' },
+					{ 'text': 'Persistence', 'value': 'Persistence' },
+					{ 'text': 'Abstract User Interface', 'value': 'AbstractUserInterface' },
+					{ 'text': 'Query', 'value': 'Query' },
+				] }
+			/> }
 
+			{ activeItem === 'createlink' &&
+			<CreateLink
+				clent={ client }
+				refetch={ linkRefetch }
+				mutation={ CREATE_LINK }
+				inputs={ { required: { label: '', type: '', x_id: '', y_id: '' }, props: { story: '', optional: '' } } }
+				typeOptions={[
+					{ "text": "Part Of", "value": "PartOf" },
+					{ "text": "Trigger", "value": "Trigger" },
+					{ "text": "Read", "value": "Read" },
+					{ "text": "Mutate", "value": "Mutate" },
+					{ "text": "Generic", "value": "Generic" }
+				]}
+			/> }
 		</div>
 	);
 };

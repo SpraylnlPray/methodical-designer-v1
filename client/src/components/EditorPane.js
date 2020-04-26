@@ -16,15 +16,14 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 		links = createLinks( linkData.Links );
 	}
 
-	const ref = React.useRef( null );
+	let containerRef = React.useRef( null );
 	let graph = null;
 
-	// todo: use reducer in app to tell graph to rerender when new data is there
 	useEffect( () => {
 		if ( !graph ) {
 			G6.registerEdge( 'quadratic-label-edge', doubleEdgeConf, 'quadratic' );
 			graph = new G6.Graph( {
-				container: ReactDOM.findDOMNode( ref.current ),
+				container: ReactDOM.findDOMNode( containerRef.current ),
 				width: 1200,
 				height: 800,
 				modes: {
@@ -80,7 +79,7 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 
 	return (
 		<div className='bordered editor-pane margin-base'>
-			<div ref={ ref }/>
+			<div ref={ containerRef }/>
 		</div>
 	);
 };
@@ -88,7 +87,6 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 export default EditorPane;
 
 const createLinks = links => {
-	let ret = [];
 	let multipleLinks = [];
 	for ( let i = 0; i < links.length; i++ ) {
 		const { x: thisX, y: thisY } = links[i];
@@ -112,15 +110,10 @@ const createLinks = links => {
 	links = links.map( link => ({
 		id: link.id, source: link.x.id, target: link.y.id, edgeType: 'type2',
 	}) );
-	ret = multipleLinks.concat( links );
-	console.log( ret );
-	return ret;
+	return multipleLinks.concat( links );
 };
 
 const areSameNodes = ( thisX, thisY, testX, testY ) => {
-	if ( thisX.id === testX.id && thisY.id === testY.id ||
-		thisX.id === testY.id && thisY.id === testX.id ) {
-		return true;
-	}
-	return false;
+	return thisX.id === testX.id && thisY.id === testY.id ||
+		thisX.id === testY.id && thisY.id === testX.id;
 };
