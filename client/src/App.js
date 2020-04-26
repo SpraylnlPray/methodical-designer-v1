@@ -24,7 +24,6 @@ function App() {
 	const { loading: nodeLoading, error: nodeError, data: nodeData, refetch: nodeRefetch } = useQuery( GET_NODES );
 	const { loading: linkLoading, error: linkError, data: linkData, refetch: linkRefetch } = useQuery( GET_LINKS );
 
-	// todo: refactor create into different components!
 	return (
 		<div className='bordered app margin-base' onClick={ handleClick }>
 			<Header as='h1'>Methodical Designer</Header>

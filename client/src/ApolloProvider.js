@@ -26,6 +26,13 @@ cache.writeQuery( {
 	},
 } );
 
+cache.writeQuery({
+	query: gql`query {justFetched}`,
+	data: {
+		justFetched: false,
+	},
+})
+
 export default (
 	<ApolloProvider client={ client }>
 		<App/>

@@ -1,25 +1,17 @@
 import React, { Component } from 'react';
 import Graph from 'react-graph-vis';
 
-let ctx;
-let network;
-let container;
-let canvas;
-let nodes;
-let rect = [];
-let drag = false;
-var drawingSurfaceImageData;
-
 class EditorPane extends Component {
 	constructor( props ) {
 		super( props );
+		console.log( 'in constructor' );
 		this.state = {
 			drag: false,
-			height: '100%',
 			options: {
 				layout: {
 					improvedLayout: true,
 				},
+				height: '100%',
 				edges: {
 					smooth: true,
 					arrows: {
@@ -37,83 +29,9 @@ class EditorPane extends Component {
 				},
 			},
 			graph: {
-				nodes: [
-					{
-						id: 1,
-						label: 'Node 1',
-					},
-					{
-						id: 2,
-						label: 'Node 2',
-					},
-					{
-						id: 3,
-						label: 'Node 3',
-					},
-					{
-						id: 4,
-						label: 'Node 4',
-					},
-					{
-						id: 5,
-						label: 'Node 5',
-					},
-				],
-				edges: [
-					{
-						from: 1,
-						to: 2,
-						arrows: 'to',
-						smooth: { type: 'curvedCCW', roundness: 0.5 },
-					},
-					{
-						from: 1,
-						to: 2,
-						arrows: 'to',
-						smooth: { type: 'curvedCCW', roundness: 0.2 },
-					},
-					{
-						from: 2,
-						to: 1,
-						arrows: 'to',
-						smooth: { type: 'curvedCCW', roundness: 0.3 },
-					},
-					{
-						from: 2,
-						to: 1,
-						arrows: 'to',
-						smooth: { type: 'curvedCCW', roundness: 0.1 },
-					},
-					{
-						from: 1,
-						to: 3,
-					},
-					{
-						from: 2,
-						to: 4,
-					},
-					{
-						from: 2,
-						to: 5,
-					},
-				],
+				nodes: props.nodeData.Nodes.map( node => ({ id: node.id, label: node.label }) ),
+				edges: createLinks( props.linkData.Links ),
 			},
-		};
-		this.canvasWrapperRef = React.createRef();
-	}
-
-	componentDidMount() {
-		// ref on graph <Graph/> to add listeners to, maybe?
-		console.log( 'ref:', this.canvasWrapperRef.current.Network.body.nodes );
-
-		container = this.canvasWrapperRef.current.Network.canvas.frame;
-		network = this.canvasWrapperRef.current.Network;
-		canvas = this.canvasWrapperRef.current.Network.canvas.frame.canvas;
-		nodes = this.state.graph.nodes;
-		ctx = canvas.getContext( '2d' );
-
-		container.oncontextmenu = function() {
-			return false;
 		};
 	}
 
@@ -121,7 +39,6 @@ class EditorPane extends Component {
 		return (
 			<div className='bordered editor-pane margin-base'>
 				<Graph
-					ref={ this.canvasWrapperRef }
 					graph={ this.state.graph }
 					options={ this.state.options }
 					events={ this.events }
@@ -132,3 +49,34 @@ class EditorPane extends Component {
 }
 
 export default EditorPane;
+
+const createLinks = links => {
+	let multipleLinks = [];
+	for ( let i = 0; i < links.length; i++ ) {
+		const { x: thisX, y: thisY } = links[i];
+		for ( let j = 0; j < links.length; j++ ) {
+			if ( i !== j ) {
+				const { x: testX, y: testY } = links[j];
+				if ( areSameNodes( thisX, thisY, testX, testY ) ) {
+					multipleLinks.push( links[i] );
+				}
+			}
+		}
+	}
+	links = links.filter( link => !multipleLinks.some( compareLink => link.id === compareLink.id ) );
+	multipleLinks = multipleLinks.map( link => ({
+		id: link.id,
+		from: link.x.id,
+		to: link.y.id,
+		smooth: { type: 'straightCross', roundness: (Math.random()).toFixed( 2 ) },
+	}) );
+	links = links.map( link => ({
+		id: link.id, from: link.x.id, to: link.y.id,
+	}) );
+	return multipleLinks.concat( links );
+};
+
+const areSameNodes = ( thisX, thisY, testX, testY ) => {
+	return thisX.id === testX.id && thisY.id === testY.id ||
+		thisX.id === testY.id && thisY.id === testX.id;
+};
