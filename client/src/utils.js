@@ -1,28 +1,21 @@
 import gql from 'graphql-tag';
 
-export const setActiveItem = ( client, id, type ) => {
+export const setActiveItem = ( client, id, objectType ) => {
 	client.writeQuery( {
 		query: gql`
-      query {
+      mutation {
         activeItem {
           id
-          type
+          objectType
         }
       }`,
 		data: {
 			activeItem: {
 				id,
-				type,
+				objectType,
 				__typename: 'ActiveItem',
 			},
 		},
-	} );
-};
-
-export const setJustFetched = ( client, value ) => {
-	client.writeQuery( {
-		query: gql`query {justFetched}`,
-		data: { justFetched: value },
 	} );
 };
 

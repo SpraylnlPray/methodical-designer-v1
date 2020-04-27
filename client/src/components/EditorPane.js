@@ -59,7 +59,7 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 		selectEdge: function( event ) {
 			let { edges } = event;
 			setMakeAppActive( false );
-			setActiveItem( client, edges[0], 'edge' );
+			setActiveItem( client, edges[0], 'link' );
 		},
 	};
 

@@ -106,27 +106,37 @@ const resolvers = {
 		},
 
 		async UpdateNode( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
+			try {
+				const session = ctx.driver.session();
+				const query = `
 				MATCH (n:Node) WHERE n.id = $id
 				SET n += $props
 				RETURN n
 			`;
-			const results = await session.run( query, args );
-			return {
-				success: true,
-				node: Get( results, 'n' ),
-			};
+				const results = await session.run( query, args );
+				return {
+					...defaultRes,
+					node: PrepareReturn( results, 'n', defaultNode ),
+				};
+			}
+			catch ( e ) {
+				return {
+					message: e.message,
+					success: false,
+				};
+			}
+
 		},
 		async UpdateLink( _, args, ctx ) {
-			const session = ctx.driver.session();
-			let query = `
+			try {
+				const session = ctx.driver.session();
+				let query = `
 				MATCH (l:Link) WHERE l.id = $id
 				SET l += $props
 			`;
 
-			if ( args.props.x_id ) {
-				query += `
+				if ( args.props.x_id ) {
+					query += `
 					WITH l AS l
 					OPTIONAL MATCH (l)-[r:X_NODE]->(:Node)
 					DELETE r
@@ -134,9 +144,9 @@ const resolvers = {
 					MATCH (n:Node) WHERE n.id = $props.x_id
 					CREATE (l)-[r:X_NODE]->(n)
 				`;
-			}
-			if ( args.props.y_id ) {
-				query += `
+				}
+				if ( args.props.y_id ) {
+					query += `
 					WITH l AS l
 					OPTIONAL MATCH (l)-[r:Y_NODE]->(:Node)
 					DELETE r
@@ -144,16 +154,24 @@ const resolvers = {
 					MATCH (n:Node) WHERE n.id = $props.y_id
 					CREATE (l)-[r:Y_NODE]->(n)
 				`;
-			}
-			query += `
+				}
+				query += `
 				RETURN l
 			`;
-			const results = await session.run( query, args );
+				const results = await session.run( query, args );
 
-			return {
-				success: true,
-				link: Get( results, 'l' ),
-			};
+				return {
+					...defaultRes,
+					link: PrepareReturn( results, 'l', defaultLink ),
+				};
+			}
+			catch ( e ) {
+				return {
+					message: e.message,
+					success: false,
+				};
+			}
+
 		},
 		async UpdateSequence( _, args, ctx ) {
 			const session = ctx.driver.session();

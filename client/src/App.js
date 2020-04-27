@@ -30,7 +30,11 @@ function App() {
 			<Grid>
 				<Grid.Row>
 					<Grid.Column width={ 4 }>
-						<InteractionPane linkRefetch={ linkRefetch } nodeRefetch={ nodeRefetch } client={ client }/>
+						<InteractionPane
+							linkRefetch={ linkRefetch }
+							nodeRefetch={ nodeRefetch }
+							client={ client }
+						/>
 					</Grid.Column>
 					<Grid.Column width={ 12 }>
 						{ nodeData && linkData && (

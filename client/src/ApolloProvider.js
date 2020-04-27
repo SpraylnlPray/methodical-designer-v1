@@ -22,7 +22,7 @@ cache.writeData( {
 	data: {
 		activeItem: {
 			id: '',
-			type: '',
+			objectType: '',
 			__typename: 'ActiveItem',
 		},
 	},

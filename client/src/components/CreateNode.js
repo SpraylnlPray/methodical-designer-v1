@@ -5,7 +5,7 @@ import Status from './Status';
 
 // inputs comes from the HOC managing the input and is the object that is saved in the state
 // props.inputs is the whole object containing information about the type of input etc. for rendering
-function CreateNode( { store, data, error, loading, handleSubmit, handleChange, props } ) {
+function CreateNode( { store, data, error, loading, handleChange, handleSubmit, props } ) {
 	return (
 		<Container>
 			<Header as='h2'>Create a Node!</Header>

@@ -3,6 +3,8 @@ import { setActiveItem } from '../utils';
 import CreateLink from './CreateLink';
 import CreateNode from './CreateNode';
 import { CREATE_NODE, CREATE_LINK } from '../queries/ServerMutations';
+import EditNode from './EditNode';
+import EditLink from './EditLink';
 
 const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 	const handleClick = ( e ) => {
@@ -12,7 +14,7 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 
 	return (
 		<div className='bordered input-pane margin-base' onClick={ e => handleClick( e ) }>
-			{ activeItem.id === 'createnode' && activeItem.type === 'option' &&
+			{ activeItem.id === 'createnode' && activeItem.objectType === 'option' &&
 			<CreateNode
 				client={ client }
 				refetch={ nodeRefetch }
@@ -27,19 +29,29 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 				] }
 			/> }
 
-			{ activeItem.id === 'createlink' && activeItem.type === 'option' &&
+			{ activeItem.id === 'createlink' && activeItem.objectType === 'option' &&
 			<CreateLink
 				clent={ client }
 				refetch={ linkRefetch }
 				mutation={ CREATE_LINK }
 				inputs={ { required: { label: '', type: '', x_id: '', y_id: '' }, props: { story: '', optional: false } } }
-				typeOptions={[
-					{ "text": "Part Of", "value": "PartOf" },
-					{ "text": "Trigger", "value": "Trigger" },
-					{ "text": "Read", "value": "Read" },
-					{ "text": "Mutate", "value": "Mutate" },
-					{ "text": "Generic", "value": "Generic" }
-				]}
+				typeOptions={ [
+					{ 'text': 'Part Of', 'value': 'PartOf' },
+					{ 'text': 'Trigger', 'value': 'Trigger' },
+					{ 'text': 'Read', 'value': 'Read' },
+					{ 'text': 'Mutate', 'value': 'Mutate' },
+					{ 'text': 'Generic', 'value': 'Generic' },
+				] }
+			/> }
+			{ activeItem.objectType === 'node' &&
+			<EditNode
+				client={ client }
+				activeItem={ activeItem }
+			/> }
+			{ activeItem.objectType === 'link' &&
+			<EditLink
+				client={ client }
+				activeItem={ activeItem }
 			/> }
 		</div>
 	);

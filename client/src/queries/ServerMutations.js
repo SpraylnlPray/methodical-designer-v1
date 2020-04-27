@@ -32,3 +32,36 @@ export const CREATE_LINK = gql`
 		}
 	}
 `;
+
+export const UPDATE_NODE = gql`
+	mutation($id: ID!, $props: NodeInput) {
+		UpdateNode(id: $id, props: $props) {
+      success
+      message
+      node {
+        id
+        label
+        type
+        story
+        synchronous
+        unreliable
+      }
+		}
+	}
+`;
+
+export const UPDATE_LINK = gql`
+	mutation($id: ID!, $props: LinkInput) {
+		UpdateLink(id: $id, props: $props) {
+      success
+      message
+      link {
+        id
+        label
+        type
+        story
+        optional
+      }
+		}
+	}
+`;

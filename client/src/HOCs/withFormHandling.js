@@ -15,8 +15,8 @@ const inputReducer = ( state, action ) => {
 				props[action.name] = action.value;
 				return { ...state, props };
 			}
-		case 'SET_JUST_FETCHED':
-			return { ...state, justFetched: action.value };
+		case 'SET_JUST_MUTATED':
+			return { ...state, justMutated: action.value };
 		default:
 			return state;
 	}
@@ -26,7 +26,7 @@ const withFormHandling = ( FormComponent ) => {
 	return function( { mutation, ...props } ) {
 		const [ store, dispatch ] = useReducer(
 			inputReducer,
-			{ ...props.inputs, justFetched: false },
+			{ ...props.inputs, justMutated: false },
 		);
 
 		const [ runMutation, { data, loading, error } ] = useMutation( mutation );
@@ -41,7 +41,7 @@ const withFormHandling = ( FormComponent ) => {
 		const handleSubmit = ( e ) => {
 			e.preventDefault();
 			if ( enteredRequired( store.required ) ) {
-				dispatch( { type: 'SET_JUST_FETCHED', value: true } );
+				dispatch( { type: 'SET_JUST_MUTATED', value: true } );
 				runMutation( { variables: { ...store.required, props: store.props } } )
 					.catch( e => console.log( e ) );
 			}
@@ -51,7 +51,7 @@ const withFormHandling = ( FormComponent ) => {
 			}
 		};
 
-		if ( data && store.justFetched ) {
+		if ( data ) {
 			props.refetch();
 		}
 
