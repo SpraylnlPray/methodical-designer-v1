@@ -7,12 +7,12 @@ import { CREATE_NODE, CREATE_LINK } from '../queries/ServerMutations';
 const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 	const handleClick = ( e ) => {
 		e.stopPropagation();
-		setActiveItem( client, activeItem );
+		setActiveItem( client, activeItem.id, activeItem.type );
 	};
 
 	return (
 		<div className='bordered input-pane margin-base' onClick={ e => handleClick( e ) }>
-			{ activeItem === 'createnode' &&
+			{ activeItem.id === 'createnode' && activeItem.type === 'option' &&
 			<CreateNode
 				client={ client }
 				refetch={ nodeRefetch }
@@ -27,7 +27,7 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 				] }
 			/> }
 
-			{ activeItem === 'createlink' &&
+			{ activeItem.id === 'createlink' && activeItem.type === 'option' &&
 			<CreateLink
 				clent={ client }
 				refetch={ linkRefetch }

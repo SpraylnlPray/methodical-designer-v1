@@ -4,7 +4,6 @@ import ApolloClient from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { createHttpLink } from 'apollo-link-http';
 import { ApolloProvider } from '@apollo/react-hooks';
-import gql from 'graphql-tag';
 
 const httpLink = createHttpLink( {
 	uri: 'http://localhost:8080/graphql',
@@ -19,10 +18,13 @@ const client = new ApolloClient( {
 	cache,
 } );
 
-cache.writeQuery( {
-	query: gql`query {activeItem}`,
+cache.writeData( {
 	data: {
-		activeItem: '',
+		activeItem: {
+			id: '',
+			type: '',
+			__typename: 'ActiveItem',
+		},
 	},
 } );
 

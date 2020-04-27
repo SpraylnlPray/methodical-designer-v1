@@ -8,7 +8,7 @@ const OptionBar = props => {
 
 	const handleClick = ( e ) => {
 		e.stopPropagation();
-		setActiveItem( client, e.target.value );
+		setActiveItem( client, e.target.value, 'option' );
 	};
 
 	return (

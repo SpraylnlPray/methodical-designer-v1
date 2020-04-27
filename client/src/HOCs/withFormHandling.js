@@ -1,5 +1,6 @@
 import React, { useReducer } from 'react';
 import { useMutation } from '@apollo/react-hooks';
+import { enteredRequired } from '../utils';
 
 const inputReducer = ( state, action ) => {
 	switch ( action.type ) {
@@ -68,15 +69,5 @@ const withFormHandling = ( FormComponent ) => {
 		);
 	};
 };
-
-// check if the user entered a value for the required fields
-function enteredRequired( requiredFields ) {
-	for ( let key of Object.keys( requiredFields ) ) {
-		if ( requiredFields[key].length <= 0 ) {
-			return false;
-		}
-	}
-	return true;
-}
 
 export default withFormHandling;

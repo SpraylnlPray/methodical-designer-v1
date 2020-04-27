@@ -2,6 +2,8 @@ import React from 'react';
 import Graph from 'react-graph-vis';
 import { setActiveItem } from '../utils';
 
+// todo: check why activeItem is being set multiple times
+
 const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 	let nodes = {};
 	let links = {};
@@ -52,12 +54,12 @@ const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 		selectNode: function( event ) {
 			let { nodes } = event;
 			setMakeAppActive( false );
-			setActiveItem( client, nodes[0] );
+			setActiveItem( client, nodes[0], 'node' );
 		},
 		selectEdge: function( event ) {
 			let { edges } = event;
 			setMakeAppActive( false );
-			setActiveItem( client, edges[0] );
+			setActiveItem( client, edges[0], 'edge' );
 		},
 	};
 

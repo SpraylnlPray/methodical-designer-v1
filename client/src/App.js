@@ -8,7 +8,7 @@ import { setActiveItem } from './utils';
 import { GET_NODES, GET_LINKS } from './queries/ServerQueries';
 
 function App() {
-	const name = 'app';
+	const id = 'app';
 	const client = useApolloClient();
 	let [ makeAppActive, setMakeAppActive ] = useState( true );
 
@@ -16,7 +16,7 @@ function App() {
 		// this is for the editor. the editor can set this property to false as stopping the propagation of the vis
 		// event does not seem to be possible.
 		if ( makeAppActive ) {
-			setActiveItem( client, name );
+			setActiveItem( client, id, 'app' );
 		}
 		setMakeAppActive( true );
 	};

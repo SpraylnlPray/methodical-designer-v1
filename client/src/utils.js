@@ -1,9 +1,21 @@
 import gql from 'graphql-tag';
 
-export const setActiveItem = ( client, name ) => {
+export const setActiveItem = ( client, id, type ) => {
 	client.writeQuery( {
-		query: gql`query {activeItem}`,
-		data: { activeItem: name },
+		query: gql`
+      query {
+        activeItem {
+          id
+          type
+        }
+      }`,
+		data: {
+			activeItem: {
+				id,
+				type,
+				__typename: 'ActiveItem',
+			},
+		},
 	} );
 };
 
