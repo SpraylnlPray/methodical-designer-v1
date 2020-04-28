@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from 'react';
+import React, { useState } from 'react';
 import InteractionPane from './components/InteractionPane';
 import EditorPane from './components/EditorPane';
 import { Header, Grid } from 'semantic-ui-react';
@@ -7,38 +7,9 @@ import './App.css';
 import { setActiveItem } from './utils';
 import { GET_SERVER_NODES, GET_SERVER_LINKS } from './queries/ServerQueries';
 
-const reducer = ( state, action ) => {
-	switch ( action.type ) {
-		case 'SET_NODES':
-			let { Nodes } = state;
-			Nodes = action.data.Nodes;
-			return { ...state, Nodes };
-		case 'SET_LINKS':
-			let { Links } = state;
-			Links = action.data.Links;
-			return { ...state, Links };
-		case 'SET_JUST_MUTATED':
-			console.log( 'setting just mutated to', action.value );
-			return { ...state, justMutated: action.value };
-		default:
-			return state;
-	}
-};
-
-const initialState = {
-	Nodes: [],
-	Links: [],
-	activeItem: {
-		itemId: '',
-		itemType: '',
-	},
-	justMutated: false,
-};
-
 function App() {
 	const id = 'app';
 	const client = useApolloClient();
-	const [ state, dispatch ] = useReducer( reducer, initialState );
 	let [ makeAppActive, setMakeAppActive ] = useState( true );
 
 	const handleClick = ( e ) => {
@@ -51,10 +22,10 @@ function App() {
 	};
 
 	const { loading: nodeLoading, error: nodeError, data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES, {
-		onCompleted: data => dispatch( { type: 'SET_NODES', data } ),
+		pollInterval: 500,
 	} );
 	const { loading: linkLoading, error: linkError, data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS, {
-		onCompleted: data => dispatch( { type: 'SET_LINKS', data } ),
+		pollInterval: 500,
 	} );
 
 	return (

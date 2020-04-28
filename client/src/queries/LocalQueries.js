@@ -9,7 +9,7 @@ export const GET_ACTIVE_ITEM = gql`
   }
 `;
 
-export const GET_NODES = gql`
+export const GET_LOCAL_NODES = gql`
   {
     Nodes @client {
       id
@@ -22,7 +22,7 @@ export const GET_NODES = gql`
   }
 `;
 
-export const GET_LINKS = gql`
+export const GET_LOCAL_LINKS = gql`
   {
     Links @client {
       id

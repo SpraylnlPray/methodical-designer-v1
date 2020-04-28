@@ -1,10 +1,9 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
 import { setActiveItem } from '../utils';
-
 // todo: check why activeItem is being set multiple times
 
-const EditorPane = ( { client, nodeData, linkData, setMakeAppActive, state } ) => {
+const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
 	let nodes = {};
 	let links = {};
 	if ( nodeData?.Nodes ) {

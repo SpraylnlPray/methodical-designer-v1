@@ -1,6 +1,6 @@
 import React, { useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/react-hooks';
-import { GET_LINKS } from '../queries/LocalQueries';
+import { GET_LOCAL_LINKS } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { UPDATE_LINK } from '../queries/ServerMutations';
@@ -9,7 +9,7 @@ import { inputReducer } from '../InputReducer';
 
 const EditNode = ( { activeItem } ) => {
 
-	const { data: { Links } } = useQuery( GET_LINKS );
+	const { data: { Links } } = useQuery( GET_LOCAL_LINKS );
 	const editedLink = Links.find( link => link.id === activeItem.itemId );
 	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = editedLink;
 	const inputs = { required: { label, type, x_id, y_id }, props: { story, optional } };

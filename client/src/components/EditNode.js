@@ -1,6 +1,6 @@
 import React, { useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/react-hooks';
-import { GET_NODES } from '../queries/LocalQueries';
+import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { UPDATE_NODE } from '../queries/ServerMutations';
@@ -9,7 +9,7 @@ import { inputReducer } from '../InputReducer';
 
 const EditNode = ( { activeItem } ) => {
 
-	const { data: { Nodes } } = useQuery( GET_NODES );
+	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
 	const editedNode = Nodes.find( node => node.id === activeItem.itemId );
 	const { label, type, story, synchronous, unreliable } = editedNode;
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
