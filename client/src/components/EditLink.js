@@ -1,18 +1,19 @@
 import React, { useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/react-hooks';
-import { GET_LOCAL_LINKS } from '../queries/LocalQueries';
+import { GET_LOCAL_LINKS, GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { UPDATE_LINK } from '../queries/ServerMutations';
 import { enteredRequired } from '../utils';
 import { inputReducer } from '../InputReducer';
 
-const EditNode = ( { activeItem } ) => {
+const EditLink = ( { activeItem } ) => {
 
 	const { data: { Links } } = useQuery( GET_LOCAL_LINKS );
-	const editedLink = Links.find( link => link.id === activeItem.itemId );
-	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = editedLink;
-	const inputs = { required: { label, type, x_id, y_id }, props: { story, optional } };
+	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = Links.find( link => link.id === activeItem.itemId );
+	const inputs = { required: { label, type, x_id, y_id }, props: { story: story ? story : '', optional } };
+	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
+	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 	const typeOptions = [
 		{ 'text': 'Part Of', 'value': 'PartOf' },
 		{ 'text': 'Trigger', 'value': 'Trigger' },
@@ -76,23 +77,25 @@ const EditNode = ( { activeItem } ) => {
 						name='type'
 						value={ store.required['type'] }
 					/>
-					<Form.Input
+					<Form.Select
 						fluid
-						className='create-required-input create-input'
-						label='X-Node ID'
-						placeholder='X-ID'
+						className='create-required-select create-input'
+						label='X-Node'
+						placeholder='X-Node'
 						required
 						onChange={ handleChange }
+						options={ nodeOptions }
 						name='x_id'
 						value={ store.required['x_id'] }
 					/>
-					<Form.Input
+					<Form.Select
 						fluid
-						className='create-required-input create-input'
-						label='Y-Node ID'
+						className='create-required-select create-input'
+						label='Y-Node'
+						placeholder='Y-Node'
 						required
-						placeholder='Y-ID'
 						onChange={ handleChange }
+						options={ nodeOptions }
 						name='y_id'
 						value={ store.required['y_id'] }
 					/>
@@ -120,4 +123,4 @@ const EditNode = ( { activeItem } ) => {
 	);
 };
 
-export default EditNode;
+export default EditLink;
