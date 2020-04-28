@@ -2,14 +2,18 @@ import React, { useReducer } from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { inputReducer } from '../InputReducer';
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation, useQuery } from '@apollo/react-hooks';
 import { CREATE_LINK } from '../queries/ServerMutations';
 import { enteredRequired } from '../utils';
+import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 
 // inputs comes from the HOC managing the input and is the object that is saved in the state
 // props.inputs is the whole object containing information about the type of input etc. for rendering
 function CreateLink( props ) {
+
 	const inputs = { required: { label: '', type: '', x_id: '', y_id: '' }, props: { story: '', optional: false } };
+	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
+	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 	const typeOptions = [
 		{ 'text': 'Part Of', 'value': 'PartOf' },
 		{ 'text': 'Trigger', 'value': 'Trigger' },
@@ -70,23 +74,25 @@ function CreateLink( props ) {
 						name='type'
 						value={ store.required['type'] }
 					/>
-					<Form.Input
+					<Form.Select
 						fluid
-						className='create-required-input create-input'
-						label='X-Node ID'
-						placeholder='X-ID'
+						className='create-required-select create-input'
+						label='X-Node'
+						placeholder='X-Node'
 						required
 						onChange={ handleChange }
+						options={ nodeOptions }
 						name='x_id'
 						value={ store.required['x_id'] }
 					/>
-					<Form.Input
+					<Form.Select
 						fluid
-						className='create-required-input create-input'
-						label='Y-Node ID'
+						className='create-required-select create-input'
+						label='Y-Node'
+						placeholder='Y-Node'
 						required
-						placeholder='Y-ID'
 						onChange={ handleChange }
+						options={ nodeOptions }
 						name='y_id'
 						value={ store.required['y_id'] }
 					/>

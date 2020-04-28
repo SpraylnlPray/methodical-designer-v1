@@ -1,19 +1,22 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/react-hooks';
 import { GET_LOCAL_LINKS, GET_LOCAL_NODES } from '../queries/LocalQueries';
-import { Container, Form, Header } from 'semantic-ui-react';
+import { Container, Form, Header, Confirm } from 'semantic-ui-react';
 import Status from './Status';
 import { DELETE_LINK, UPDATE_LINK } from '../queries/ServerMutations';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 
 const EditLink = ( { activeItem, client } ) => {
+	const [ open, setOpen ] = useState( false );
 
 	const { data: { Links } } = useQuery( GET_LOCAL_LINKS );
 	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = Links.find( link => link.id === activeItem.itemId );
 	const inputs = { required: { label, type, x_id, y_id }, props: { story: story ? story : '', optional } };
+
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
 	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
+
 	const typeOptions = [
 		{ 'text': 'Part Of', 'value': 'PartOf' },
 		{ 'text': 'Trigger', 'value': 'Trigger' },
@@ -54,9 +57,17 @@ const EditLink = ( { activeItem, client } ) => {
 
 	const handleDelete = ( e ) => {
 		e.preventDefault();
-		// todo: confirmation dialog
 		runDelete( { variables: { id: activeItem.itemId } } )
 			.then( data => setActiveItem( client, 'app', 'app' ) );
+	};
+
+	const handleCancel = ( e ) => {
+		e.preventDefault();
+		setOpen( false );
+	};
+
+	const openConfirmation = () => {
+		setOpen( true );
 	};
 
 	return (
@@ -125,7 +136,16 @@ const EditLink = ( { activeItem, client } ) => {
 					/>
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Update!</Form.Button>
-				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
+				<Form.Button onClick={ openConfirmation }>Delete</Form.Button>
+				<Confirm
+					open={ open }
+					header='Delete Link?'
+					confirmButton='Yes, Continue'
+					content={ `This action can't be undone` }
+					onConfirm={ handleDelete }
+					onCancel={ handleCancel }
+					size='mini'
+				/>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

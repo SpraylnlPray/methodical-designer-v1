@@ -1,13 +1,14 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/react-hooks';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
-import { Container, Form, Header } from 'semantic-ui-react';
+import { Confirm, Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { DELETE_NODE, UPDATE_NODE } from '../queries/ServerMutations';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 
 const EditNode = ( { activeItem, client } ) => {
+	const [ open, setOpen ] = useState( false );
 
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
 	const { label, type, story, synchronous, unreliable } = Nodes.find( node => node.id === activeItem.itemId );
@@ -54,9 +55,17 @@ const EditNode = ( { activeItem, client } ) => {
 
 	const handleDelete = ( e ) => {
 		e.preventDefault();
-		// todo: confirmation dialog
 		runDelete( { variables: { id: activeItem.itemId } } )
 			.then( data => setActiveItem( client, 'app', 'app' ) );
+	};
+
+	const handleCancel = ( e ) => {
+		e.preventDefault();
+		setOpen( false );
+	};
+
+	const openConfirmation = () => {
+		setOpen( true );
 	};
 
 	return (
@@ -109,8 +118,17 @@ const EditNode = ( { activeItem, client } ) => {
 						name='unreliable'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
-				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
+				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
+				<Form.Button onClick={ openConfirmation }>Delete</Form.Button>
+				<Confirm
+					open={ open }
+					header='Delete Node?'
+					confirmButton='Yes, Continue'
+					content={ `This action can't be undone` }
+					onConfirm={ handleDelete }
+					onCancel={ handleCancel }
+					size='mini'
+				/>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

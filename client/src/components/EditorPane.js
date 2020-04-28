@@ -88,10 +88,12 @@ const createLinks = links => {
 		id: link.id,
 		from: link.x.id,
 		to: link.y.id,
+		label: link.label,
+		font: { size: 12, align: 'middle' },
 		smooth: { type: 'straightCross', roundness: (Math.random()).toFixed( 2 ) },
 	}) );
 	links = links.map( link => ({
-		id: link.id, from: link.x.id, to: link.y.id,
+		id: link.id, from: link.x.id, to: link.y.id, label: link.label, font: { size: 12, align: 'middle' },
 	}) );
 	return multipleLinks.concat( links );
 };
