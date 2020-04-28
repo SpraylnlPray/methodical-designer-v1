@@ -26,14 +26,12 @@ const inputReducer = ( state, action ) => {
 	}
 };
 
-const EditNode = ( { mutation, activeItem } ) => {
+const EditNode = ( { activeItem } ) => {
 
 	const { data: { Nodes } } = useQuery( GET_NODES );
-	const editedNode = Nodes.find( node => node.id === activeItem.id );
+	const editedNode = Nodes.find( node => node.id === activeItem.itemId );
 	const { label, type, story, synchronous, unreliable } = editedNode;
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
-
-	console.log( editedNode );
 
 	const typeOptions = [
 		{ 'text': 'API', 'value': 'API' },
@@ -64,7 +62,7 @@ const EditNode = ( { mutation, activeItem } ) => {
 			// in this query all entries are optional as they can be edited or not
 			// at some point I'll have to refactor this on the server side
 			let props = { ...store.props, ...store.required };
-			let variables = { id: activeItem.id, props };
+			let variables = { id: activeItem.itemId, props };
 			runMutation( { variables } )
 				.catch( e => console.log( e ) );
 		}

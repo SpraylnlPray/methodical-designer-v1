@@ -4,7 +4,7 @@ import { setActiveItem } from '../utils';
 
 // todo: check why activeItem is being set multiple times
 
-const EditorPane = ( { client, nodeData, linkData, setMakeAppActive } ) => {
+const EditorPane = ( { client, nodeData, linkData, setMakeAppActive, state } ) => {
 	let nodes = {};
 	let links = {};
 	if ( nodeData?.Nodes ) {

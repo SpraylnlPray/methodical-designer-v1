@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-export const GET_NODES = gql`
+export const GET_SERVER_NODES = gql`
 	query nodes{
 		Nodes{
       id
@@ -13,7 +13,7 @@ export const GET_NODES = gql`
 	}
 `;
 
-export const GET_LINKS = gql`
+export const GET_SERVER_LINKS = gql`
   query links {
     Links {
       id

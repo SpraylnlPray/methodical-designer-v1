@@ -9,12 +9,12 @@ import EditLink from './EditLink';
 const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 	const handleClick = ( e ) => {
 		e.stopPropagation();
-		setActiveItem( client, activeItem.id, activeItem.type );
+		setActiveItem( client, activeItem.itemId, activeItem.itemType );
 	};
 
 	return (
 		<div className='bordered input-pane margin-base' onClick={ e => handleClick( e ) }>
-			{ activeItem.id === 'createnode' && activeItem.objectType === 'option' &&
+			{ activeItem.itemId === 'createnode' && activeItem.itemType === 'option' &&
 			<CreateNode
 				client={ client }
 				refetch={ nodeRefetch }
@@ -29,7 +29,7 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 				] }
 			/> }
 
-			{ activeItem.id === 'createlink' && activeItem.objectType === 'option' &&
+			{ activeItem.itemId === 'createlink' && activeItem.itemType === 'option' &&
 			<CreateLink
 				clent={ client }
 				refetch={ linkRefetch }
@@ -43,12 +43,12 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 					{ 'text': 'Generic', 'value': 'Generic' },
 				] }
 			/> }
-			{ activeItem.objectType === 'node' &&
+			{ activeItem.itemType === 'node' &&
 			<EditNode
 				client={ client }
 				activeItem={ activeItem }
 			/> }
-			{ activeItem.objectType === 'link' &&
+			{ activeItem.itemType === 'link' &&
 			<EditLink
 				client={ client }
 				activeItem={ activeItem }

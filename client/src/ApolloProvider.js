@@ -21,8 +21,8 @@ const client = new ApolloClient( {
 cache.writeData( {
 	data: {
 		activeItem: {
-			id: '',
-			objectType: '',
+			itemId: '',
+			itemType: '',
 			__typename: 'ActiveItem',
 		},
 	},

@@ -5,7 +5,8 @@ import { Header, Grid } from 'semantic-ui-react';
 import { useApolloClient, useQuery } from '@apollo/react-hooks';
 import './App.css';
 import { setActiveItem } from './utils';
-import { GET_NODES, GET_LINKS } from './queries/ServerQueries';
+import { GET_SERVER_NODES, GET_SERVER_LINKS } from './queries/ServerQueries';
+import { GET_NODES } from './queries/LocalQueries';
 
 function App() {
 	const id = 'app';
@@ -21,8 +22,12 @@ function App() {
 		setMakeAppActive( true );
 	};
 
-	const { loading: nodeLoading, error: nodeError, data: nodeData, refetch: nodeRefetch } = useQuery( GET_NODES );
-	const { loading: linkLoading, error: linkError, data: linkData, refetch: linkRefetch } = useQuery( GET_LINKS );
+	const { loading: nodeLoading, error: nodeError, data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES, {
+		onCompleted: data => console.log( 'received data', data ),
+	} );
+	const { loading: linkLoading, error: linkError, data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS, {
+		onCompleted: data => console.log( 'received data', data ),
+	} );
 
 	return (
 		<div className='bordered app margin-base' onClick={ handleClick }>
