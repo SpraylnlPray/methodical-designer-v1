@@ -3,15 +3,14 @@ import { useMutation, useQuery } from '@apollo/react-hooks';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
-import { UPDATE_NODE } from '../queries/ServerMutations';
-import { enteredRequired } from '../utils';
+import { DELETE_NODE, UPDATE_NODE } from '../queries/ServerMutations';
+import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 
-const EditNode = ( { activeItem } ) => {
+const EditNode = ( { activeItem, client } ) => {
 
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
-	const editedNode = Nodes.find( node => node.id === activeItem.itemId );
-	const { label, type, story, synchronous, unreliable } = editedNode;
+	const { label, type, story, synchronous, unreliable } = Nodes.find( node => node.id === activeItem.itemId );
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
 
 	const typeOptions = [
@@ -27,7 +26,8 @@ const EditNode = ( { activeItem } ) => {
 		{ ...inputs, justMutated: false },
 	);
 
-	const [ runMutation, { data, loading, error } ] = useMutation( UPDATE_NODE );
+	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_NODE );
+	const [ runDelete, { data: deleteData, loading: deleteLoading, error: deleteError } ] = useMutation( DELETE_NODE );
 
 	const handleChange = ( e, data ) => {
 		const name = data.name;
@@ -43,13 +43,20 @@ const EditNode = ( { activeItem } ) => {
 			// at some point I'll have to refactor this on the server side
 			let props = { ...store.props, ...store.required };
 			let variables = { id: activeItem.itemId, props };
-			runMutation( { variables } )
+			runUpdate( { variables } )
 				.catch( e => console.log( e ) );
 		}
 		else {
 			console.log( 'Must provide required inputs!' );
 			alert( 'Must provide required inputs!' );
 		}
+	};
+
+	const handleDelete = ( e ) => {
+		e.preventDefault();
+		runDelete( { variables: { id: activeItem.itemId } } )
+			.then( data => setActiveItem( client, 'app', 'app' ) );
+		// todo: update server code to set circles
 	};
 
 	return (
@@ -103,8 +110,9 @@ const EditNode = ( { activeItem } ) => {
 					/>
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
+				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
-			<Status data={ data } error={ error } loading={ loading }/>
+			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>
 	);
 };

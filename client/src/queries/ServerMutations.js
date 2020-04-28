@@ -65,3 +65,11 @@ export const UPDATE_LINK = gql`
 		}
 	}
 `;
+
+export const DELETE_NODE = gql`
+	mutation($id: ID!) {
+		DeleteNode(id: $id) {
+			success
+		}
+	}
+`;
