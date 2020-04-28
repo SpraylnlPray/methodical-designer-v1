@@ -1,32 +1,13 @@
 import React, { useReducer } from 'react';
 import { useMutation } from '@apollo/react-hooks';
 import { enteredRequired } from '../utils';
-
-const inputReducer = ( state, action ) => {
-	switch ( action.type ) {
-		case 'ADD':
-			if ( action.required ) {
-				let required = state.required;
-				required[action.name] = action.value;
-				return { ...state, required };
-			}
-			else {
-				let props = state.props;
-				props[action.name] = action.value;
-				return { ...state, props };
-			}
-		case 'SET_JUST_MUTATED':
-			return { ...state, justMutated: action.value };
-		default:
-			return state;
-	}
-};
+import { inputReducer } from '../InputReducer';
 
 const withFormHandling = ( FormComponent ) => {
 	return function( { mutation, ...props } ) {
 		const [ store, dispatch ] = useReducer(
 			inputReducer,
-			{ ...props.inputs, justMutated: false },
+			{ ...props.inputs },
 		);
 
 		const [ runMutation, { data, loading, error } ] = useMutation( mutation );
@@ -41,7 +22,6 @@ const withFormHandling = ( FormComponent ) => {
 		const handleSubmit = ( e ) => {
 			e.preventDefault();
 			if ( enteredRequired( store.required ) ) {
-				dispatch( { type: 'SET_JUST_MUTATED', value: true } );
 				runMutation( { variables: { ...store.required, props: store.props } } )
 					.catch( e => console.log( e ) );
 			}

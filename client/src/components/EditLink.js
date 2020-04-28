@@ -5,26 +5,7 @@ import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { UPDATE_LINK } from '../queries/ServerMutations';
 import { enteredRequired } from '../utils';
-
-const inputReducer = ( state, action ) => {
-	switch ( action.type ) {
-		case 'ADD':
-			if ( action.required ) {
-				let required = state.required;
-				required[action.name] = action.value;
-				return { ...state, required };
-			}
-			else {
-				let props = state.props;
-				props[action.name] = action.value;
-				return { ...state, props };
-			}
-		case 'SET_JUST_MUTATED':
-			return { ...state, justMutated: action.value };
-		default:
-			return state;
-	}
-};
+import { inputReducer } from '../InputReducer';
 
 const EditNode = ( { activeItem } ) => {
 
@@ -42,7 +23,7 @@ const EditNode = ( { activeItem } ) => {
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
-		{ ...inputs, justMutated: false },
+		{ ...inputs },
 	);
 
 	const [ runMutation, { data, loading, error } ] = useMutation( UPDATE_LINK );
@@ -57,7 +38,6 @@ const EditNode = ( { activeItem } ) => {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
-			dispatch( { type: 'SET_JUST_MUTATED', value: true } );
 			// in this query all entries are optional as they can be edited or not
 			// at some point I'll have to refactor this on the server side
 			let props = { ...store.props, ...store.required };

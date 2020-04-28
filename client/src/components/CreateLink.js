@@ -1,11 +1,49 @@
-import React from 'react';
+import React, { useReducer } from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
-import withFormHandling from '../HOCs/withFormHandling';
 import Status from './Status';
+import { inputReducer } from '../InputReducer';
+import { useMutation } from '@apollo/react-hooks';
+import { CREATE_LINK } from '../queries/ServerMutations';
+import { enteredRequired } from '../utils';
 
 // inputs comes from the HOC managing the input and is the object that is saved in the state
 // props.inputs is the whole object containing information about the type of input etc. for rendering
-function CreateLink( { store, data, error, loading, handleSubmit, handleChange, props } ) {
+function CreateLink( props ) {
+	const inputs = { required: { label: '', type: '', x_id: '', y_id: '' }, props: { story: '', optional: false } };
+	const typeOptions = [
+		{ 'text': 'Part Of', 'value': 'PartOf' },
+		{ 'text': 'Trigger', 'value': 'Trigger' },
+		{ 'text': 'Read', 'value': 'Read' },
+		{ 'text': 'Mutate', 'value': 'Mutate' },
+		{ 'text': 'Generic', 'value': 'Generic' },
+	];
+
+	const [ store, dispatch ] = useReducer(
+		inputReducer,
+		{ ...inputs },
+	);
+
+	const [ runMutation, { data, loading, error } ] = useMutation( CREATE_LINK );
+
+	const handleChange = ( e, data ) => {
+		const name = data.name;
+		const value = data.type === 'checkbox' ? data.checked : data.value;
+		const required = !!data.required;
+		dispatch( { type: 'ADD', required, name, value } );
+	};
+
+	const handleSubmit = ( e ) => {
+		e.preventDefault();
+		if ( enteredRequired( store.required ) ) {
+			runMutation( { variables: { ...store.required, props: store.props } } )
+				.catch( e => console.log( e ) );
+		}
+		else {
+			console.log( 'Must provide required inputs!' );
+			alert( 'Must provide required inputs!' );
+		}
+	};
+
 	return (
 		<Container>
 			<Header as='h2'>Create a Link!</Header>
@@ -19,18 +57,18 @@ function CreateLink( { store, data, error, loading, handleSubmit, handleChange, 
 						onChange={ handleChange }
 						required
 						name='label'
-						value={ store['label'] }
+						value={ store.required['label'] }
 					/>
 					<Form.Select
 						className='create-required-select create-input'
 						fluid
 						label='Type'
-						options={ props.typeOptions }
+						options={ typeOptions }
 						placeholder='Type'
 						onChange={ handleChange }
 						required
 						name='type'
-						value={ store['type'] }
+						value={ store.required['type'] }
 					/>
 					<Form.Input
 						fluid
@@ -40,7 +78,7 @@ function CreateLink( { store, data, error, loading, handleSubmit, handleChange, 
 						required
 						onChange={ handleChange }
 						name='x_id'
-						value={ store['x_id'] }
+						value={ store.required['x_id'] }
 					/>
 					<Form.Input
 						fluid
@@ -50,7 +88,7 @@ function CreateLink( { store, data, error, loading, handleSubmit, handleChange, 
 						placeholder='Y-ID'
 						onChange={ handleChange }
 						name='y_id'
-						value={ store['y_id'] }
+						value={ store.required['y_id'] }
 					/>
 					<Form.Input
 						fluid
@@ -59,13 +97,13 @@ function CreateLink( { store, data, error, loading, handleSubmit, handleChange, 
 						placeholder='Story'
 						onChange={ handleChange }
 						name='story'
-						value={ store['story'] }
+						value={ store.props['story'] }
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='optional'
 						onChange={ handleChange }
-						checked={ store['optional'] }
+						checked={ store.props['optional'] }
 						name='optional'
 					/>
 				</Form.Group>
@@ -76,4 +114,4 @@ function CreateLink( { store, data, error, loading, handleSubmit, handleChange, 
 	);
 }
 
-export default withFormHandling( CreateLink );
+export default CreateLink;
