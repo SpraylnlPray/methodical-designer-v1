@@ -3,11 +3,11 @@ import { useMutation, useQuery } from '@apollo/react-hooks';
 import { GET_LOCAL_LINKS, GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
-import { UPDATE_LINK } from '../queries/ServerMutations';
-import { enteredRequired } from '../utils';
+import { DELETE_LINK, UPDATE_LINK } from '../queries/ServerMutations';
+import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 
-const EditLink = ( { activeItem } ) => {
+const EditLink = ( { activeItem, client } ) => {
 
 	const { data: { Links } } = useQuery( GET_LOCAL_LINKS );
 	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = Links.find( link => link.id === activeItem.itemId );
@@ -27,7 +27,8 @@ const EditLink = ( { activeItem } ) => {
 		{ ...inputs },
 	);
 
-	const [ runMutation, { data, loading, error } ] = useMutation( UPDATE_LINK );
+	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LINK );
+	const [ runDelete, { data: deleteData, loading: deleteLoading, error: deleteError } ] = useMutation( DELETE_LINK );
 
 	const handleChange = ( e, data ) => {
 		const name = data.name;
@@ -42,13 +43,20 @@ const EditLink = ( { activeItem } ) => {
 			// in this query all entries are optional as they can be edited or not
 			// at some point I'll have to refactor this on the server side
 			let props = { ...store.props, ...store.required };
-			runMutation( { variables: { id: activeItem.itemId, props } } )
+			runUpdate( { variables: { id: activeItem.itemId, props } } )
 				.catch( e => console.log( e ) );
 		}
 		else {
 			console.log( 'Must provide required inputs!' );
 			alert( 'Must provide required inputs!' );
 		}
+	};
+
+	const handleDelete = ( e ) => {
+		e.preventDefault();
+		// todo: confirmation dialog
+		runDelete( { variables: { id: activeItem.itemId } } )
+			.then( data => setActiveItem( client, 'app', 'app' ) );
 	};
 
 	return (
@@ -117,8 +125,9 @@ const EditLink = ( { activeItem } ) => {
 					/>
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Update!</Form.Button>
+				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
-			<Status data={ data } error={ error } loading={ loading }/>
+			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>
 	);
 };

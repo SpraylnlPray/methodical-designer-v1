@@ -209,22 +209,58 @@ const resolvers = {
 		},
 
 		async DeleteNode( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (n:Node) WHERE n.id = $id
-				OPTIONAL MATCH (n)-[:X_NODE]-(l:Link)
-				SET l.x_id = ""
-				WITH n AS n
-				OPTIONAL MATCH (n)-[:Y_NODE]-(l:Link)
-				SET l.y_id = ""
-				DETACH DELETE n
-			`;
-			await session.run( query, args );
-			return { success: true };
+			try {
+				const session = ctx.driver.session();
+				const deleteNodeQuery = `
+					MATCH (n:Node) WHERE n.id = $id
+					DETACH DELETE n
+				`;
+				await session.run( deleteNodeQuery, args );
+
+				const formatLinksQuery = `
+					MATCH (l1:Link)
+					WHERE NOT (l1)-[:Y_NODE]->(:Node)
+					SET l1.y_id = l1.x_id
+					WITH l1 as l1
+					MATCH (n1:Node) WHERE n1.id = l1.y_id
+					CREATE (l1)-[:Y_NODE]->(n1)
+					WITH l1 as l1, n1 as n1
+					MATCH (l2:Link)
+					WHERE NOT (l2)-[:X_NODE]->(:Node)
+					SET l2.x_id = l2.y_id
+					WITH l2 as l2, l1 as l1, n1 as n1
+					MATCH (n2:Node) WHERE n2.id = l2.x_id
+					CREATE (l2)-[:X_NODE]->(n2)				
+					RETURN l1, l2, n1, n2
+				`;
+				await session.run( formatLinksQuery );
+
+				const cleanupQuery = `
+					MATCH (l:Link) WHERE NOT (l)--(:Node)
+					OPTIONAL MATCH (l)-[:X_END]-(le:LinkEnd)
+					DETACH DELETE le
+					WITH l AS l
+					OPTIONAL MATCH (l)-[:Y_END]-(le:LinkEnd)
+					DETACH DELETE le
+					WITH l AS l
+					OPTIONAL MATCH (l)-[:IS]-(s:Sequence)
+					DETACH DELETE s
+					DETACH DELETE l
+				`;
+				await session.run( cleanupQuery );
+				return { success: true };
+			}
+			catch ( e ) {
+				return {
+					message: e.message,
+					success: false,
+				};
+			}
 		},
 		async DeleteLink( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
+			try {
+				const session = ctx.driver.session();
+				const query = `
 				MATCH (l:Link) WHERE l.id = $id
 				OPTIONAL MATCH (l)--(le:LinkEnd)
 				DETACH DELETE le
@@ -233,8 +269,15 @@ const resolvers = {
 				DETACH DELETE s
 				DETACH DELETE l
 			`;
-			await session.run( query, args );
-			return { success: true };
+				await session.run( query, args );
+				return { success: true };
+			}
+			catch ( e ) {
+				return {
+					message: e.message,
+					success: false,
+				};
+			}
 		},
 		async DeleteSequence( _, args, ctx ) {
 			const session = ctx.driver.session();

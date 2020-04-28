@@ -54,9 +54,9 @@ const EditNode = ( { activeItem, client } ) => {
 
 	const handleDelete = ( e ) => {
 		e.preventDefault();
+		// todo: confirmation dialog
 		runDelete( { variables: { id: activeItem.itemId } } )
 			.then( data => setActiveItem( client, 'app', 'app' ) );
-		// todo: update server code to set circles
 	};
 
 	return (
