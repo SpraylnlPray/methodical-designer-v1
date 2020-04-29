@@ -11,6 +11,7 @@ const EditNode = ( { activeItem, client } ) => {
 	const [ open, setOpen ] = useState( false );
 
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
+	// todo: fix bug that application sometimes crashes when deleting a node
 	const { label, type, story, synchronous, unreliable } = Nodes.find( node => node.id === activeItem.itemId );
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
 
