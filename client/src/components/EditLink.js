@@ -15,7 +15,10 @@ const EditLink = ( { activeItem, client } ) => {
 	const inputs = { required: { label, type, x_id, y_id }, props: { story: story ? story : '', optional } };
 
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
-	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
+	let nodeOptions = [];
+	if ( Nodes ) {
+		nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
+	}
 
 	const typeOptions = [
 		{ 'text': 'Part Of', 'value': 'PartOf' },
