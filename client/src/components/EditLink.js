@@ -120,7 +120,7 @@ const EditLink = ( { activeItem, client } ) => {
 						label='Y-Node'
 						placeholder='Y-Node'
 						required
-						serach
+						search
 						selection
 						onChange={ handleChange }
 						options={ nodeOptions }
