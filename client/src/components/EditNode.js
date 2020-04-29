@@ -55,6 +55,7 @@ const EditNode = ( { activeItem, client } ) => {
 
 	const handleDelete = ( e ) => {
 		e.preventDefault();
+		// todo: bug that sets active item too late
 		runDelete( { variables: { id: activeItem.itemId } } )
 			.then( data => setActiveItem( client, 'app', 'app' ) );
 	};

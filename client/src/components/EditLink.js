@@ -85,9 +85,11 @@ const EditLink = ( { activeItem, client } ) => {
 						name='label'
 						value={ store.required['label'] }
 					/>
-					<Form.Select
+					<Form.Dropdown
 						className='create-required-select create-input'
 						fluid
+						search
+						selection
 						label='Type'
 						options={ typeOptions }
 						placeholder='Type'
@@ -96,23 +98,27 @@ const EditLink = ( { activeItem, client } ) => {
 						name='type'
 						value={ store.required['type'] }
 					/>
-					<Form.Select
-						fluid
-						className='create-required-select create-input'
-						label='X-Node'
+					<Form.Dropdown
 						placeholder='X-Node'
+						fluid
+						label='X-Node'
+						search
+						selection
 						required
 						onChange={ handleChange }
 						options={ nodeOptions }
 						name='x_id'
 						value={ store.required['x_id'] }
+						className={ 'create-required-select create-input' }
 					/>
-					<Form.Select
+					<Form.Dropdown
 						fluid
 						className='create-required-select create-input'
 						label='Y-Node'
 						placeholder='Y-Node'
 						required
+						serach
+						selection
 						onChange={ handleChange }
 						options={ nodeOptions }
 						name='y_id'

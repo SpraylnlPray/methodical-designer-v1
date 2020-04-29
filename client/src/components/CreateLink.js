@@ -63,9 +63,11 @@ function CreateLink( props ) {
 						name='label'
 						value={ store.required['label'] }
 					/>
-					<Form.Select
+					<Form.Dropdown
 						className='create-required-select create-input'
 						fluid
+						search
+						selection
 						label='Type'
 						options={ typeOptions }
 						placeholder='Type'
@@ -74,8 +76,10 @@ function CreateLink( props ) {
 						name='type'
 						value={ store.required['type'] }
 					/>
-					<Form.Select
+					<Form.Dropdown
 						fluid
+						search
+						selection
 						className='create-required-select create-input'
 						label='X-Node'
 						placeholder='X-Node'
@@ -85,8 +89,10 @@ function CreateLink( props ) {
 						name='x_id'
 						value={ store.required['x_id'] }
 					/>
-					<Form.Select
+					<Form.Dropdown
 						fluid
+						search
+						selection
 						className='create-required-select create-input'
 						label='Y-Node'
 						placeholder='Y-Node'
