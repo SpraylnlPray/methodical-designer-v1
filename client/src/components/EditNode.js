@@ -1,17 +1,14 @@
-import React, { useReducer, useState } from 'react';
+import React, { useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/react-hooks';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
-import { Confirm, Container, Form, Header } from 'semantic-ui-react';
+import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { DELETE_NODE, UPDATE_NODE } from '../queries/ServerMutations';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 
-const EditNode = ( { activeItem, client } ) => {
-	const [ open, setOpen ] = useState( false );
-
+const EditNode = ( { activeItem, client, refetch } ) => {
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
-	// todo: fix bug that application sometimes crashes when deleting a node
 	const { label, type, story, synchronous, unreliable } = Nodes.find( node => node.id === activeItem.itemId );
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
 
@@ -28,7 +25,16 @@ const EditNode = ( { activeItem, client } ) => {
 		{ ...inputs, justMutated: false },
 	);
 
-	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_NODE );
+	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_NODE, {
+		update( cache, { data } ) {
+			let { Nodes } = cache.readQuery( { query: GET_LOCAL_NODES } );
+			Nodes = Nodes.filter( node => node.id !== data.UpdateNode.node.id );
+			cache.writeQuery( {
+				query: GET_LOCAL_NODES,
+				data: { Nodes: Nodes.concat( [ data.UpdateNode.node ] ) },
+			} );
+		},
+	} );
 	const [ runDelete, { data: deleteData, loading: deleteLoading, error: deleteError } ] = useMutation( DELETE_NODE );
 
 	const handleChange = ( e, data ) => {
@@ -56,18 +62,11 @@ const EditNode = ( { activeItem, client } ) => {
 
 	const handleDelete = ( e ) => {
 		e.preventDefault();
-		// todo: bug that sets active item too late
 		runDelete( { variables: { id: activeItem.itemId } } )
+			.then( setTimeout( function() {
+				refetch();
+			}, 300 ) )
 			.then( data => setActiveItem( client, 'app', 'app' ) );
-	};
-
-	const handleCancel = ( e ) => {
-		e.preventDefault();
-		setOpen( false );
-	};
-
-	const openConfirmation = () => {
-		setOpen( true );
 	};
 
 	return (
@@ -121,16 +120,7 @@ const EditNode = ( { activeItem, client } ) => {
 					/>
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
-				<Form.Button onClick={ openConfirmation }>Delete</Form.Button>
-				<Confirm
-					open={ open }
-					header='Delete Node?'
-					confirmButton='Yes, Continue'
-					content={ `This action can't be undone` }
-					onConfirm={ handleDelete }
-					onCancel={ handleCancel }
-					size='mini'
-				/>
+				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

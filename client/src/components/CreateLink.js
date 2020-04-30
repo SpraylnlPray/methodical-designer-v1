@@ -7,8 +7,6 @@ import { CREATE_LINK } from '../queries/ServerMutations';
 import { enteredRequired } from '../utils';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 
-// inputs comes from the HOC managing the input and is the object that is saved in the state
-// props.inputs is the whole object containing information about the type of input etc. for rendering
 function CreateLink( props ) {
 
 	const inputs = { required: { label: '', type: '', x_id: '', y_id: '' }, props: { story: '', optional: false } };
@@ -27,6 +25,7 @@ function CreateLink( props ) {
 		{ ...inputs },
 	);
 
+	// update function doesn't work here because somehow the returned link doesn't have x and y (?)
 	const [ runMutation, { data, loading, error } ] = useMutation( CREATE_LINK );
 
 	const handleChange = ( e, data ) => {
@@ -39,7 +38,12 @@ function CreateLink( props ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
+			console.log( 'store before sending', store );
 			runMutation( { variables: { ...store.required, props: store.props } } )
+				// timeout because otherwise the fetched data doesn't contain the new link (?)
+				.then( setTimeout( function() {
+					props.refetch();
+				}, 200 ) )
 				.catch( e => console.log( e ) );
 		}
 		else {

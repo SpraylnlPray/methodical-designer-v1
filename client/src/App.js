@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import InteractionPane from './components/InteractionPane';
 import EditorPane from './components/EditorPane';
-import { Header, Grid } from 'semantic-ui-react';
+import { Grid, Header } from 'semantic-ui-react';
 import { useApolloClient, useQuery } from '@apollo/react-hooks';
 import './App.css';
 import { setActiveItem } from './utils';
-import { GET_SERVER_NODES, GET_SERVER_LINKS } from './queries/ServerQueries';
+import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 
 function App() {
 	const id = 'app';
@@ -21,12 +21,8 @@ function App() {
 		setMakeAppActive( true );
 	};
 
-	const { loading: nodeLoading, error: nodeError, data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES, {
-		pollInterval: 500,
-	} );
-	const { loading: linkLoading, error: linkError, data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS, {
-		pollInterval: 500,
-	} );
+	const { loading: nodeLoading, error: nodeError, data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES );
+	const { loading: linkLoading, error: linkError, data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS );
 
 	return (
 		<div className='bordered app margin-base' onClick={ handleClick }>

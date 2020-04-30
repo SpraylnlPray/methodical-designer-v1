@@ -45,6 +45,7 @@ const resolvers = {
 				const query = `
 				CREATE (l:Link:${ args.type } {id: randomUUID()})
 				SET l += {x_id: $x_id, y_id: $y_id, type: $type, label: $label}
+				SET l += $props
 				WITH l AS l
 				MATCH (x:Node) WHERE x.id = $x_id
 				CREATE (l)-[:X_NODE]->(x)
@@ -248,7 +249,10 @@ const resolvers = {
 					DETACH DELETE l
 				`;
 				await session.run( cleanupQuery );
-				return { success: true };
+				return {
+					success: true,
+					id: args.id,
+				};
 			}
 			catch ( e ) {
 				return {
@@ -270,7 +274,10 @@ const resolvers = {
 				DETACH DELETE l
 			`;
 				await session.run( query, args );
-				return { success: true };
+				return {
+					success: true,
+					id: args.id,
+				};
 			}
 			catch ( e ) {
 				return {

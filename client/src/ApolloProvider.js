@@ -18,6 +18,7 @@ const client = new ApolloClient( {
 	cache,
 } );
 
+// todo: update according to apollo 3.0
 cache.writeData( {
 	data: {
 		activeItem: {

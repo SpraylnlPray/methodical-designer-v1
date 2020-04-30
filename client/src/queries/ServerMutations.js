@@ -67,17 +67,19 @@ export const UPDATE_LINK = gql`
 `;
 
 export const DELETE_NODE = gql`
-	mutation($id: ID!) {
-		DeleteNode(id: $id) {
-			success
-		}
-	}
+  mutation($id: ID!) {
+    DeleteNode(id: $id) {
+      success
+      id
+    }
+  }
 `;
 
 export const DELETE_LINK = gql`
-	mutation($id: ID!) {
-		DeleteLink(id: $id) {
-			success
-		}
-	}
+  mutation($id: ID!) {
+    DeleteLink(id: $id) {
+      success
+      id
+    }
+  }
 `;

@@ -1,21 +1,19 @@
-import React, { useReducer, useState } from 'react';
+import React, { useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/react-hooks';
 import { GET_LOCAL_LINKS, GET_LOCAL_NODES } from '../queries/LocalQueries';
-import { Container, Form, Header, Confirm } from 'semantic-ui-react';
+import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { DELETE_LINK, UPDATE_LINK } from '../queries/ServerMutations';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 
-const EditLink = ( { activeItem, client } ) => {
-	const [ open, setOpen ] = useState( false );
-
+const EditLink = ( { activeItem, client, refetch } ) => {
 	const { data: { Links } } = useQuery( GET_LOCAL_LINKS );
 	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = Links.find( link => link.id === activeItem.itemId );
 	const inputs = { required: { label, type, x_id, y_id }, props: { story: story ? story : '', optional } };
 
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
-	let nodeOptions = [];
+	let nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 	if ( Nodes ) {
 		nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 	}
@@ -50,6 +48,10 @@ const EditLink = ( { activeItem, client } ) => {
 			// at some point I'll have to refactor this on the server side
 			let props = { ...store.props, ...store.required };
 			runUpdate( { variables: { id: activeItem.itemId, props } } )
+				// timeout because otherwise the fetched data doesn't contain the new link (?)
+				.then( setTimeout( function() {
+					refetch();
+				}, 100 ) )
 				.catch( e => console.log( e ) );
 		}
 		else {
@@ -61,16 +63,10 @@ const EditLink = ( { activeItem, client } ) => {
 	const handleDelete = ( e ) => {
 		e.preventDefault();
 		runDelete( { variables: { id: activeItem.itemId } } )
-			.then( data => setActiveItem( client, 'app', 'app' ) );
-	};
-
-	const handleCancel = ( e ) => {
-		e.preventDefault();
-		setOpen( false );
-	};
-
-	const openConfirmation = () => {
-		setOpen( true );
+			.then( data => setActiveItem( client, 'app', 'app' ) )
+			.then( setTimeout( function() {
+				refetch();
+			}, 250 ) );
 	};
 
 	return (
@@ -145,16 +141,7 @@ const EditLink = ( { activeItem, client } ) => {
 					/>
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Update!</Form.Button>
-				<Form.Button onClick={ openConfirmation }>Delete</Form.Button>
-				<Confirm
-					open={ open }
-					header='Delete Link?'
-					confirmButton='Yes, Continue'
-					content={ `This action can't be undone` }
-					onConfirm={ handleDelete }
-					onCancel={ handleCancel }
-					size='mini'
-				/>
+				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

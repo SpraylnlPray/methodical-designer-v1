@@ -200,6 +200,7 @@ type seedReturn {
 
 type deleteReturn {
   success: Boolean!
+  id: ID!
 }
 
 schema {

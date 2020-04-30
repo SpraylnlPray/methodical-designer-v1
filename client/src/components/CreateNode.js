@@ -5,9 +5,8 @@ import { inputReducer } from '../InputReducer';
 import { useMutation } from '@apollo/react-hooks';
 import { CREATE_NODE } from '../queries/ServerMutations';
 import { enteredRequired } from '../utils';
+import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 
-// inputs comes from the HOC managing the input and is the object that is saved in the state
-// props.inputs is the whole object containing information about the type of input etc. for rendering
 function CreateNode( props ) {
 	const inputs = { required: { label: '', type: '' }, props: { story: '', synchronous: false, unreliable: false } };
 	const typeOptions = [
@@ -22,7 +21,15 @@ function CreateNode( props ) {
 		inputReducer,
 		{ ...inputs, justMutated: false },
 	);
-	const [ runMutation, { data, loading, error } ] = useMutation( CREATE_NODE );
+	const [ runMutation, { data, loading, error } ] = useMutation( CREATE_NODE, {
+		update( cache, { data } ) {
+			const { Nodes } = cache.readQuery( { query: GET_LOCAL_NODES } );
+			cache.writeQuery( {
+				query: GET_LOCAL_NODES,
+				data: { Nodes: Nodes.concat( [ data.CreateNode.node ] ) },
+			} );
+		},
+	} );
 
 	const handleChange = ( e, data ) => {
 		const name = data.name;

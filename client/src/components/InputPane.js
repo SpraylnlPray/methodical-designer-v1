@@ -26,11 +26,13 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 			<EditNode
 				client={ client }
 				activeItem={ activeItem }
+				refetch={ nodeRefetch }
 			/> }
 			{ activeItem.itemType === 'link' &&
 			<EditLink
 				client={ client }
 				activeItem={ activeItem }
+				refetch={ linkRefetch }
 			/> }
 		</div>
 	);
