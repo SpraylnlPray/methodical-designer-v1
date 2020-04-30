@@ -1,16 +1,15 @@
 export const inputReducer = ( state, action ) => {
 	switch ( action.type ) {
-		case 'ADD':
-			if ( action.required ) {
-				let required = state.required;
-				required[action.name] = action.value;
-				return { ...state, required };
-			}
-			else {
-				let props = state.props;
-				props[action.name] = action.value;
-				return { ...state, props };
-			}
+		case 'ADD_REQUIRED':
+			let { required } = state;
+			required[action.name] = action.value;
+			return { ...state, required };
+
+		case 'ADD_PROPS':
+			let { props } = state;
+			props[action.name] = action.value;
+			return { ...state, props };
+
 		default:
 			return state;
 	}

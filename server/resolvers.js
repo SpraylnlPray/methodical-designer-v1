@@ -1,5 +1,6 @@
 const seedQuery = require( './seed' );
 const neo4j = require( 'neo4j-driver' );
+const { defaultLinkEnd } = require( './defaults' );
 const { defaultNode, defaultLink } = require( './defaults' );
 
 const defaultRes = { success: true, message: '' };
@@ -43,17 +44,17 @@ const resolvers = {
 			try {
 				const session = ctx.driver.session();
 				const query = `
-				CREATE (l:Link:${ args.type } {id: randomUUID()})
-				SET l += {x_id: $x_id, y_id: $y_id, type: $type, label: $label}
-				SET l += $props
-				WITH l AS l
-				MATCH (x:Node) WHERE x.id = $x_id
-				CREATE (l)-[:X_NODE]->(x)
-				WITH l AS l, x AS x
-				MATCH (y:Node) WHERE y.id = $y_id
-				CREATE (l)-[:Y_NODE]->(y)
-				RETURN l
-			`;
+					CREATE (l:Link:${ args.type } {id: randomUUID()})
+					SET l += {x_id: $x_id, y_id: $y_id, type: $type, label: $label}
+					SET l += $props
+					WITH l AS l
+					MATCH (x:Node) WHERE x.id = $x_id
+					CREATE (l)-[:X_NODE]->(x)
+					WITH l AS l, x AS x
+					MATCH (y:Node) WHERE y.id = $y_id
+					CREATE (l)-[:Y_NODE]->(y)
+					RETURN l
+				`;
 				const results = await session.run( query, args );
 				return {
 					...defaultRes,
@@ -88,9 +89,10 @@ const resolvers = {
 			};
 		},
 		async CreateLinkEnd( _, args, ctx ) {
-			const session = ctx.driver.session();
-			args = TakeKeysFromProps( args, 'xy' );
-			const query = `
+			try {
+				const session = ctx.driver.session();
+				args = TakeKeysFromProps( args, 'xy' );
+				const query = `
 				CREATE (le:LinkEnd {id: randomUUID()})
 				SET le += $props
 				WITH le AS le
@@ -98,12 +100,20 @@ const resolvers = {
 				CREATE (l)-[:${ args.xy.toUpperCase() }_END]->(le)
 				RETURN le, l
 			`;
-			const results = await session.run( query, args );
-			return {
-				success: true,
-				link: Get( results, 'l' ),
-				end: Get( results, 'le' ),
-			};
+				const results = await session.run( query, args );
+				return {
+					...defaultRes,
+					link: PrepareReturn( results, 'l', defaultLink ),
+					end: PrepareReturn( results, 'le', defaultLinkEnd ),
+				};
+			}
+			catch ( e ) {
+				return {
+					message: e.message,
+					success: false,
+				};
+			}
+
 		},
 
 		async UpdateNode( _, args, ctx ) {

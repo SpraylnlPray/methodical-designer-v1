@@ -17,7 +17,7 @@ function CreateNode( props ) {
 		{ 'text': 'Query', 'value': 'Query' },
 	];
 
-	const [ localStore, localDispatch ] = useReducer(
+	const [ store, dispatch ] = useReducer(
 		inputReducer,
 		{ ...inputs, justMutated: false },
 	);
@@ -31,17 +31,22 @@ function CreateNode( props ) {
 		},
 	} );
 
-	const handleChange = ( e, data ) => {
+	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;
 		const value = data.type === 'checkbox' ? data.checked : data.value;
-		const required = !!data.required;
-		localDispatch( { type: 'ADD', required, name, value } );
+		dispatch( { type: 'ADD_REQUIRED', name, value } );
+	};
+
+	const handlePropsChange = ( e, data ) => {
+		const name = data.name;
+		const value = data.type === 'checkbox' ? data.checked : data.value;
+		dispatch( { type: 'ADD_PROPS', name, value } );
 	};
 
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
-		if ( enteredRequired( localStore.required ) ) {
-			runMutation( { variables: { ...localStore.required, props: localStore.props } } )
+		if ( enteredRequired( store.required ) ) {
+			runMutation( { variables: { ...store.required, props: store.props } } )
 				.catch( e => console.log( e ) );
 		}
 		else {
@@ -60,43 +65,44 @@ function CreateNode( props ) {
 						className='create-required-input create-input'
 						label='Label'
 						placeholder='Label'
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						required
 						name='label'
-						value={ localStore.required['label'] }
+						value={ store.required['label'] }
 					/>
 					<Form.Select
 						className='create-required-select create-input'
 						fluid
+						clearable
 						label='Type'
 						options={ typeOptions }
 						placeholder='Type'
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						required
 						name='type'
-						value={ localStore.required['type'] }
+						value={ store.required['type'] }
 					/>
 					<Form.Input
 						fluid
 						className='create-required-input create-input'
 						label='Story'
 						placeholder='Story'
-						onChange={ handleChange }
+						onChange={ handlePropsChange }
 						name='story'
-						value={ localStore.props['story'] }
+						value={ store.props['story'] }
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='Synchronous'
-						onChange={ handleChange }
-						checked={ localStore.props['synchronous'] }
+						onChange={ handlePropsChange }
+						checked={ store.props['synchronous'] }
 						name='synchronous'
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='Unreliable'
-						onChange={ handleChange }
-						checked={ localStore.props['unreliable'] }
+						onChange={ handlePropsChange }
+						checked={ store.props['unreliable'] }
 						name='unreliable'
 					/>
 				</Form.Group>

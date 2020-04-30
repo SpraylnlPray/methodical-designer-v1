@@ -34,11 +34,16 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LINK );
 	const [ runDelete, { data: deleteData, loading: deleteLoading, error: deleteError } ] = useMutation( DELETE_LINK );
 
-	const handleChange = ( e, data ) => {
+	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;
 		const value = data.type === 'checkbox' ? data.checked : data.value;
-		const required = !!data.required;
-		dispatch( { type: 'ADD', required, name, value } );
+		dispatch( { type: 'ADD_REQUIRED', name, value } );
+	};
+
+	const handlePropsChange = ( e, data ) => {
+		const name = data.name;
+		const value = data.type === 'checkbox' ? data.checked : data.value;
+		dispatch( { type: 'ADD_PROPS', name, value } );
 	};
 
 	const handleSubmit = ( e ) => {
@@ -79,7 +84,7 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 						className='create-required-input create-input'
 						label='Label'
 						placeholder='Label'
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						required
 						name='label'
 						value={ store.required['label'] }
@@ -87,12 +92,13 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 					<Form.Dropdown
 						className='create-required-select create-input'
 						fluid
+						clearable
 						search
 						selection
 						label='Type'
 						options={ typeOptions }
 						placeholder='Type'
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						required
 						name='type'
 						value={ store.required['type'] }
@@ -101,10 +107,11 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 						placeholder='X-Node'
 						fluid
 						label='X-Node'
+						clearable
 						search
 						selection
 						required
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						options={ nodeOptions }
 						name='x_id'
 						value={ store.required['x_id'] }
@@ -116,9 +123,10 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 						label='Y-Node'
 						placeholder='Y-Node'
 						required
+						clearable
 						search
 						selection
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						options={ nodeOptions }
 						name='y_id'
 						value={ store.required['y_id'] }
@@ -128,14 +136,14 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 						className='create-required-input create-input'
 						label='Story'
 						placeholder='Story'
-						onChange={ handleChange }
+						onChange={ handlePropsChange }
 						name='story'
 						value={ store.props['story'] }
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='optional'
-						onChange={ handleChange }
+						onChange={ handlePropsChange }
 						checked={ store.props['optional'] }
 						name='optional'
 					/>

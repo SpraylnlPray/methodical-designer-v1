@@ -37,11 +37,16 @@ const EditNode = ( { activeItem, client, refetch } ) => {
 	} );
 	const [ runDelete, { data: deleteData, loading: deleteLoading, error: deleteError } ] = useMutation( DELETE_NODE );
 
-	const handleChange = ( e, data ) => {
+	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;
 		const value = data.type === 'checkbox' ? data.checked : data.value;
-		const required = !!data.required;
-		dispatch( { type: 'ADD', required, name, value } );
+		dispatch( { type: 'ADD_REQUIRED', name, value } );
+	};
+
+	const handlePropsChange = ( e, data ) => {
+		const name = data.name;
+		const value = data.type === 'checkbox' ? data.checked : data.value;
+		dispatch( { type: 'ADD_PROPS', name, value } );
 	};
 
 	const handleSubmit = ( e ) => {
@@ -79,7 +84,7 @@ const EditNode = ( { activeItem, client, refetch } ) => {
 						className='create-required-input create-input'
 						label='Label'
 						placeholder='Label'
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						required
 						name='label'
 						value={ store.required['label'] }
@@ -90,7 +95,7 @@ const EditNode = ( { activeItem, client, refetch } ) => {
 						label='Type'
 						options={ typeOptions }
 						placeholder='Type'
-						onChange={ handleChange }
+						onChange={ handleRequiredChange }
 						required
 						name='type'
 						value={ store.required['type'] }
@@ -100,21 +105,21 @@ const EditNode = ( { activeItem, client, refetch } ) => {
 						className='create-required-input create-input'
 						label='Story'
 						placeholder='Story'
-						onChange={ handleChange }
+						onChange={ handlePropsChange }
 						name='story'
 						value={ store.props['story'] }
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='Synchronous'
-						onChange={ handleChange }
+						onChange={ handlePropsChange }
 						checked={ store.props['synchronous'] }
 						name='synchronous'
 					/>
 					<Form.Checkbox
 						className='create-input'
 						label='Unreliable'
-						onChange={ handleChange }
+						onChange={ handlePropsChange }
 						checked={ store.props['unreliable'] }
 						name='unreliable'
 					/>

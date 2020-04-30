@@ -27,6 +27,14 @@ export const GET_SERVER_LINKS = gql`
       y {
         id
       }
+      x_end {
+        arrow
+        note
+      }
+      y_end {
+        arrow
+        note
+      }
     }
   }
 `;

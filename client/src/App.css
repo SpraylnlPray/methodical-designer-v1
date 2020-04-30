@@ -5,11 +5,11 @@
 
 .app {
     margin-top: 0 !important;
-    height: 900px;
+    height: 950px;
 }
 
 .interaction-pane {
-    height: 820px;
+    height: 870px;
 }
 
 .margin-base {
@@ -17,11 +17,11 @@
 }
 
 .input-pane {
-    height: 730px;
+    height: 780px;
 }
 
 .editor-pane {
-    height: 820px;
+    height: 870px;
 }
 
 .create-form {

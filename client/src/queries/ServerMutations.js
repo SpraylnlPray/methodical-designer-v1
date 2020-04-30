@@ -83,3 +83,16 @@ export const DELETE_LINK = gql`
     }
   }
 `;
+
+export const CREATE_LINK_END = gql`
+  mutation($id: ID!, $props: LinkEndInput) {
+    CreateLinkEnd(link_id: $id, props: $props) {
+      success
+      message
+      end {
+        note
+        arrow
+      }
+    }
+  }
+`;
