@@ -23,9 +23,9 @@ const resolvers = {
 			try {
 				const session = ctx.driver.session();
 				const query = `
-				CREATE (n:Node:${ args.type } {id: randomUUID(), label: $label, type: $type})
-				SET n += $props
-				RETURN n`;
+					CREATE (n:Node:${ args.type } {id: randomUUID(), label: $label, type: $type})
+					SET n += $props
+					RETURN n`;
 				const results = await session.run( query, args );
 				return {
 					...defaultRes,
