@@ -96,3 +96,16 @@ export const CREATE_LINK_END = gql`
     }
   }
 `;
+
+export const CREATE_SEQUENCE = gql`
+  mutation($id: ID!, $props: SequencePropertyInput) {
+    CreateSequence(link_id: $id, props: $props) {
+      message
+      success
+      seq {
+        group
+        seq
+      }
+    }
+  }
+`;

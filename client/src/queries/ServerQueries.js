@@ -35,6 +35,10 @@ export const GET_SERVER_LINKS = gql`
         arrow
         note
       }
+      sequence {
+        group
+        seq
+      }
     }
   }
 `;

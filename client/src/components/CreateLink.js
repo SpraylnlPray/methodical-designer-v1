@@ -2,7 +2,7 @@ import React, { useReducer } from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/react-hooks';
-import { CREATE_LINK, CREATE_LINK_END } from '../queries/ServerMutations';
+import { CREATE_LINK, CREATE_LINK_END, CREATE_SEQUENCE } from '../queries/ServerMutations';
 import { enteredRequired } from '../utils';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 
@@ -29,6 +29,11 @@ const inputReducer = ( state, action ) => {
 			y_end[action.name] = action.value;
 			return { ...state, y_end };
 
+		case 'ADD_SEQ':
+			let { seq } = state;
+			seq[action.name] = action.value;
+			return { ...state, seq };
+
 		default:
 			return state;
 	}
@@ -41,6 +46,7 @@ function CreateLink( props ) {
 		props: { story: '', optional: false },
 		x_end: { arrow: '', note: '' },
 		y_end: { arrow: '', note: '' },
+		seq: { group: '', seq: '' },
 	};
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
 	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
@@ -63,6 +69,7 @@ function CreateLink( props ) {
 	// update function doesn't work here because somehow the returned link doesn't have x and y (?)
 	const [ runCreateLink, { data, loading, error } ] = useMutation( CREATE_LINK );
 	const [ runCreateEnd ] = useMutation( CREATE_LINK_END );
+	const [ runCreateSeq ] = useMutation( CREATE_SEQUENCE );
 
 	const handleEndChange = ( e, data ) => {
 		const name = data.name;
@@ -87,6 +94,12 @@ function CreateLink( props ) {
 		dispatch( { type: 'ADD_PROPS', name, value } );
 	};
 
+	const handleSeqChange = ( e, data ) => {
+		const name = data.name;
+		const value = data.value;
+		dispatch( { type: 'ADD_SEQ', name, value } );
+	};
+
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
@@ -94,10 +107,22 @@ function CreateLink( props ) {
 				.then( data => {
 					const { data: { CreateLink: { link: { id } } } } = data;
 					if ( store.x_end.arrow.length > 0 || store.x_end.note.length > 0 ) {
-						runCreateEnd( { variables: { id: id, props: { ...store.x_end, xy: 'x' } } } );
+						let arrow = store.x_end.arrow;
+						if ( arrow.length === 0 ) {
+							arrow = 'none';
+						}
+						runCreateEnd( { variables: { id: id, props: { arrow, note: store.x_end.note, xy: 'x' } } } );
 					}
 					if ( store.y_end.arrow.length > 0 || store.y_end.note.length > 0 ) {
-						runCreateEnd( { variables: { id: id, props: { ...store.x_end, xy: 'y' } } } );
+						let arrow = store.y_end.arrow;
+						if ( arrow.length === 0 ) {
+							arrow = 'none';
+						}
+						runCreateEnd( { variables: { id: id, props: { arrow, note: store.y_end.note, xy: 'y' } } } );
+					}
+					if ( store.seq.group.length > 0 || store.seq.seq.length > 0 ) {
+						let seq = Number( store.seq.seq );
+						runCreateSeq( { variables: { id: id, props: { seq, group: store.seq.group } } } );
 					}
 				} )
 				// timeout because otherwise the fetched data doesn't contain the new link (?)
@@ -221,6 +246,24 @@ function CreateLink( props ) {
 						onChange={ handlePropsChange }
 						name='story'
 						value={ store.props['story'] }
+					/>
+					<Form.Input
+						fluid
+						className='create-required-input create-input'
+						label='Sequence Group'
+						placeholder='Group'
+						onChange={ handleSeqChange }
+						name='group'
+						value={ store.seq['group'] }
+					/>
+					<Form.Input
+						fluid
+						className='create-required-input create-input'
+						label='Sequence Number'
+						placeholder='0'
+						onChange={ handleSeqChange }
+						name='seq'
+						value={ store.seq['seq'] }
 					/>
 					<Form.Checkbox
 						className='create-input'

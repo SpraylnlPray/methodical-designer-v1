@@ -50,3 +50,7 @@
 .hidden {
     visibility: hidden;
 }
+
+.overflow-managed {
+    overflow: auto;
+}

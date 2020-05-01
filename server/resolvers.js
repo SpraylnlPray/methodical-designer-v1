@@ -1,9 +1,9 @@
 const seedQuery = require( './seed' );
 const neo4j = require( 'neo4j-driver' );
-const { defaultLinkEnd } = require( './defaults' );
-const { defaultNode, defaultLink } = require( './defaults' );
+const { defaultNode, defaultLink, defaultSeq, defaultLinkEnd } = require( './defaults' );
 
 const defaultRes = { success: true, message: '' };
+const errorRes = e => ({ success: false, message: e.message });
 
 const resolvers = {
 	Mutation: {
@@ -33,10 +33,7 @@ const resolvers = {
 				};
 			}
 			catch ( e ) {
-				return {
-					message: e.message,
-					success: false,
-				};
+				return errorRes( e );
 			}
 
 		},
@@ -62,16 +59,14 @@ const resolvers = {
 				};
 			}
 			catch ( e ) {
-				return {
-					message: e.message,
-					success: false,
-				};
+				return errorRes( e );
 			}
 		},
 		async CreateSequence( _, args, ctx ) {
-			args.props.seq = neo4j.int( args.props.seq );
-			const session = ctx.driver.session();
-			const query = `
+			try {
+				args.props.seq = neo4j.int( args.props.seq );
+				const session = ctx.driver.session();
+				const query = `
 				CREATE (s:Sequence {id: randomUUID()})
 				SET s += $props
 				WITH s AS s
@@ -79,14 +74,18 @@ const resolvers = {
 				CREATE (l)-[:IS]->(s)
 				RETURN s, l
 			`;
-			const results = await session.run( query, args );
-			const seq = Get( results, 's' );
-			seq.seq = neo4j.integer.toNumber( seq.seq );
-			return {
-				success: true,
-				seq,
-				link: Get( results, 'l' ),
-			};
+				const results = await session.run( query, args );
+				const seq = Get( results, 's' );
+				seq.seq = neo4j.integer.toNumber( seq.seq );
+				return {
+					...defaultRes,
+					seq: PrepareReturn( results, 's', defaultSeq ),
+					link: PrepareReturn( results, 'l', defaultLink ),
+				};
+			}
+			catch ( e ) {
+				return errorRes( e );
+			}
 		},
 		async CreateLinkEnd( _, args, ctx ) {
 			try {
@@ -131,12 +130,8 @@ const resolvers = {
 				};
 			}
 			catch ( e ) {
-				return {
-					message: e.message,
-					success: false,
-				};
+				return errorRes( e );
 			}
-
 		},
 		async UpdateLink( _, args, ctx ) {
 			try {
@@ -177,12 +172,8 @@ const resolvers = {
 				};
 			}
 			catch ( e ) {
-				return {
-					message: e.message,
-					success: false,
-				};
+				return errorRes( e );
 			}
-
 		},
 		async UpdateSequence( _, args, ctx ) {
 			const session = ctx.driver.session();
