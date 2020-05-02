@@ -1,5 +1,5 @@
 import React, { useReducer } from 'react';
-import { useMutation, useQuery } from '@apollo/react-hooks';
+import { useMutation, useQuery } from '@apollo/client';
 import { GET_LOCAL_LINKS, GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
@@ -17,7 +17,6 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 	if ( Nodes ) {
 		nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 	}
-
 	const typeOptions = [
 		{ 'text': 'Part Of', 'value': 'PartOf' },
 		{ 'text': 'Trigger', 'value': 'Trigger' },
@@ -32,7 +31,7 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 	);
 
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LINK );
-	const [ runDelete, { data: deleteData, loading: deleteLoading, error: deleteError } ] = useMutation( DELETE_LINK );
+	const [ runDelete ] = useMutation( DELETE_LINK );
 
 	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;

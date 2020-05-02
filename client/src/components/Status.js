@@ -1,6 +1,6 @@
 import React from 'react';
-import { Message, Icon } from 'semantic-ui-react';
-// todo: add error output for more than jsut graphql errors
+import { Icon, Message } from 'semantic-ui-react';
+// todo: add error output for more than just graphql errors
 
 const Status = ( { loading, error, data } ) => {
 	let errors = {};

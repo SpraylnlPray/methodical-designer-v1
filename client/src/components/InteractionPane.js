@@ -2,7 +2,7 @@ import React from 'react';
 import OptionBar from './OptionBar';
 import InputPane from './InputPane';
 import { GET_ACTIVE_ITEM } from '../queries/LocalQueries';
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery } from '@apollo/client';
 
 const InteractionPane = ( { client, nodeRefetch, linkRefetch } ) => {
 	const { data: { activeItem } } = useQuery( GET_ACTIVE_ITEM );

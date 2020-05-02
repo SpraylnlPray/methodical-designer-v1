@@ -1,5 +1,5 @@
 import React, { useReducer } from 'react';
-import { useMutation, useQuery } from '@apollo/react-hooks';
+import { useMutation, useQuery } from '@apollo/client';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
@@ -35,7 +35,7 @@ const EditNode = ( { activeItem, client, refetch } ) => {
 			} );
 		},
 	} );
-	const [ runDelete, { data: deleteData, loading: deleteLoading, error: deleteError } ] = useMutation( DELETE_NODE );
+	const [ runDelete ] = useMutation( DELETE_NODE );
 
 	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;

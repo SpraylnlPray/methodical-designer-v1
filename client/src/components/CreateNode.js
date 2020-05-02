@@ -2,10 +2,9 @@ import React, { useReducer } from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { inputReducer } from '../InputReducer';
-import { useMutation } from '@apollo/react-hooks';
-import { CREATE_NODE } from '../queries/ServerMutations';
+import { useMutation } from '@apollo/client';
+import { CREATE_LOCAL_NODE } from '../queries/LocalMutations';
 import { enteredRequired } from '../utils';
-import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 
 function CreateNode( props ) {
 	const inputs = { required: { label: '', type: '' }, props: { story: '', synchronous: false, unreliable: false } };
@@ -21,15 +20,7 @@ function CreateNode( props ) {
 		inputReducer,
 		{ ...inputs, justMutated: false },
 	);
-	const [ runMutation, { data, loading, error } ] = useMutation( CREATE_NODE, {
-		update( cache, { data } ) {
-			const { Nodes } = cache.readQuery( { query: GET_LOCAL_NODES } );
-			cache.writeQuery( {
-				query: GET_LOCAL_NODES,
-				data: { Nodes: Nodes.concat( [ data.CreateNode.node ] ) },
-			} );
-		},
-	} );
+	const [ runMutation, { data, loading, error } ] = useMutation( CREATE_LOCAL_NODE );
 
 	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;
@@ -46,7 +37,12 @@ function CreateNode( props ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
-			runMutation( { variables: { ...store.required, props: store.props } } )
+			runMutation( {
+				variables: {
+					...store.required,
+					props: store.props,
+				},
+			} )
 				.catch( e => console.log( e ) );
 		}
 		else {

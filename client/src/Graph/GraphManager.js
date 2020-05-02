@@ -59,8 +59,8 @@ export default class GraphManager {
 	createLinkDict() {
 		let dict = {};
 		this.#links.forEach( link => {
-			link.added = false;
-			dict[link.id] = link;
+			dict[link.id] = { ...link };
+			dict[link.id].added = false;
 		} );
 		return dict;
 	};
