@@ -3,7 +3,7 @@ import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
 import { enteredRequired } from '../utils';
-import { GET_LOCAL_NODES } from '../queries/LocalQueries';
+import { LOCAL_NODES } from '../queries/LocalQueries';
 import { CREATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { inputReducer } from '../InputReducer';
 import { arrowOptions, typeOptions } from '../linkOptions';
@@ -17,7 +17,7 @@ function CreateLink( props ) {
 		seq: { group: '', seq: '' },
 	};
 
-	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
+	const { data: { Nodes } } = useQuery( LOCAL_NODES );
 	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 
 	const [ store, dispatch ] = useReducer(

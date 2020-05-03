@@ -7,7 +7,7 @@ import { setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import { CREATE_NODE } from './queries/ServerMutations';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
-import { GET_LOCAL_NODES } from './queries/LocalQueries';
+import { LOCAL_NODES } from './queries/LocalQueries';
 
 function App() {
 	const id = 'app';
@@ -27,7 +27,7 @@ function App() {
 	const { data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES );
 	const { data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS );
 
-	const { data } = useQuery( GET_LOCAL_NODES );
+	const { data } = useQuery( LOCAL_NODES );
 
 	const handleSave = e => {
 		if ( data?.Nodes ) {
@@ -68,6 +68,6 @@ function App() {
 			</Grid>
 		</div>
 	);
-};
+}
 
 export default App;

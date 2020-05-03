@@ -9,9 +9,7 @@ export default class GraphManager {
 			color: '#000000',
 			physics: true,
 			smooth: {
-				enabled: true,
-				type: 'horizontal',
-				roundness: 0,
+				enabled: false,
 			},
 			font: {
 				size: 12,
@@ -52,8 +50,7 @@ export default class GraphManager {
 	}
 
 	get linkDisplayData() {
-		const linkDisplayData = this.createLinks( this.#linkDict );
-		return linkDisplayData;
+		return this.createLinks( this.#linkDict );
 	}
 
 	createLinkDict() {
@@ -66,6 +63,8 @@ export default class GraphManager {
 	};
 
 	createLinks() {
+		// this is an array of arrays
+		// each array inside contains the links between two nodes that are connected by multiple links
 		const multipleConnectionsList = [];
 		const normalLinks = [];
 		// go over each link
@@ -101,6 +100,7 @@ export default class GraphManager {
 		const normalLinkData = normalLinks.map( link => {
 			const defaultData = this.getDefaultLinkData( link );
 			return {
+
 				...defaultData,
 			};
 		} );
@@ -116,7 +116,11 @@ export default class GraphManager {
 				const defaultData = this.getDefaultLinkData( link );
 				return {
 					...defaultData,
-					smooth: { roundness: index / list.length },
+					smooth: {
+						enabled: index !== 0,
+						type: 'horizontal',
+						roundness: index / list.length,
+					},
 				};
 			} );
 		} );

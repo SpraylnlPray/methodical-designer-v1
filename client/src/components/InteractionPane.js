@@ -1,11 +1,11 @@
 import React from 'react';
 import OptionBar from './OptionBar';
 import InputPane from './InputPane';
-import { GET_ACTIVE_ITEM } from '../queries/LocalQueries';
+import { ACTIVE_ITEM } from '../queries/LocalQueries';
 import { useQuery } from '@apollo/client';
 
 const InteractionPane = ( { client, nodeRefetch, linkRefetch } ) => {
-	const { data: { activeItem } } = useQuery( GET_ACTIVE_ITEM );
+	const { data: { activeItem } } = useQuery( ACTIVE_ITEM );
 	return (
 		<div className='bordered interaction-pane margin-base'>
 			<div>{ activeItem.itemType }</div>

@@ -4,6 +4,7 @@ import { createHttpLink } from 'apollo-link-http';
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import gql from 'graphql-tag';
 import { generateLocalUUID } from './utils';
+import { DELETED_NODE_IDS, LOCAL_LINKS, LOCAL_NODES } from './queries/LocalQueries';
 
 const httpLink = createHttpLink( {
 	uri: 'http://localhost:8080/graphql',
@@ -11,6 +12,20 @@ const httpLink = createHttpLink( {
 
 const cache = new InMemoryCache( {
 	dataIdFromObject: ( { id } ) => id,
+	typePolicies: {
+		Query: {
+			fields: {
+				Node( existingData, { args, toReference } ) {
+					console.log( 'hello from Node' );
+					return existingData;
+				},
+				Nodes( existingData, { args, toReference } ) {
+					console.log( 'hello from Nodes' );
+					return existingData;
+				},
+			},
+		},
+	},
 } );
 
 const client = new ApolloClient( {
@@ -24,8 +39,6 @@ const client = new ApolloClient( {
 
 				cache.modify( 'ROOT_QUERY', {
 					Nodes( ...args ) {
-						// a temporary ID that is only for this session. Ones the user presses "save to DB" it is replaced with
-						// an ID from Neo4j
 						const newId = generateLocalUUID();
 						const newNode = { id: newId, label, type, story, synchronous, unreliable, localNode: true };
 						return args[0].concat( [ newNode ] );
@@ -104,6 +117,45 @@ const client = new ApolloClient( {
 					},
 				} );
 			},
+
+			deleteNode: ( _root, variables, { cache } ) => {
+				const { Nodes } = cache.readQuery( { query: LOCAL_NODES } );
+				const { deletedNodes } = cache.readQuery( { query: DELETED_NODE_IDS } );
+				const { Links } = cache.readQuery( { query: LOCAL_LINKS } );
+
+				let nodesCopy = Nodes.concat();
+				let nodeToDelete = nodesCopy.find( node => node.id === variables.id );
+				nodesCopy = nodesCopy.filter( node => node.id !== variables.id );
+				let linksCopy = JSON.parse( JSON.stringify( Links ) );
+
+				// todo: handling for when both nodes are same and this node gets deleted
+				linksCopy = linksCopy.map( link => {
+					if ( link.x.id === nodeToDelete.id ) {
+						link.x.id = link.y.id;
+					}
+					else if ( link.y.id === nodeToDelete.id ) {
+						link.y.id = link.x.id;
+					}
+					return link;
+				} );
+
+				cache.writeQuery( {
+					query: LOCAL_NODES,
+					data: { Nodes: nodesCopy },
+				} );
+
+				cache.writeQuery( {
+					query: LOCAL_LINKS,
+					data: { Links: linksCopy },
+				} );
+
+				cache.writeQuery( {
+					query: DELETED_NODE_IDS,
+					data: {
+						deletedNodes: deletedNodes.concat( nodeToDelete ),
+					},
+				} );
+			},
 		},
 	},
 } );
@@ -111,6 +163,8 @@ const client = new ApolloClient( {
 cache.writeQuery( {
 	query: gql`
     query {
+      deletedNodes
+      deletedLinks
       activeItem {
         itemId
         itemType
@@ -118,6 +172,8 @@ cache.writeQuery( {
     }
 	`,
 	data: {
+		deletedNodes: [],
+		deletedLinks: [],
 		activeItem: {
 			itemId: '',
 			itemType: '',

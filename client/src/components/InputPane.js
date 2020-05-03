@@ -6,6 +6,7 @@ import EditNode from './EditNode';
 import EditLink from './EditLink';
 
 const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
+
 	const handleClick = ( e ) => {
 		e.stopPropagation();
 		setActiveItem( client, activeItem.itemId, activeItem.itemType );

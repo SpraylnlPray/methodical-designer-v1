@@ -24,3 +24,9 @@ export const UPDATE_LOCAL_LINK = gql`
     updateLink(id: $id, props: $props, x_end: $x_end, y_end: $y_end, seq: $seq) @client
   }
 `;
+
+export const DELETE_LOCAL_NODE = gql`
+  mutation DeleteLocalNode($id: ID!) {
+    deleteNode(id: $id) @client
+  }
+`;

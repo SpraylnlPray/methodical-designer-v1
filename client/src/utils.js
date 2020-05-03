@@ -1,14 +1,8 @@
-import gql from 'graphql-tag';
+import { ACTIVE_ITEM } from './queries/LocalQueries';
 
 export const setActiveItem = ( client, itemId, itemType ) => {
 	client.writeQuery( {
-		query: gql`
-      mutation {
-        activeItem {
-          itemId
-          itemType
-        }
-      }`,
+		query: ACTIVE_ITEM,
 		data: {
 			activeItem: {
 				itemId,

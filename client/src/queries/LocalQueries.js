@@ -1,7 +1,7 @@
 import gql from 'graphql-tag';
 
-export const GET_ACTIVE_ITEM = gql`
-  {
+export const ACTIVE_ITEM = gql`
+  query {
     activeItem @client {
       itemId
       itemType
@@ -9,8 +9,8 @@ export const GET_ACTIVE_ITEM = gql`
   }
 `;
 
-export const GET_LOCAL_NODES = gql`
-  {
+export const LOCAL_NODES = gql`
+  query {
     Nodes @client {
       id
       label
@@ -22,8 +22,16 @@ export const GET_LOCAL_NODES = gql`
   }
 `;
 
-export const GET_LOCAL_LINKS = gql`
-  {
+export const DELETED_NODE_IDS = gql`
+  query {
+    deletedNodes @client {
+      id
+    }
+  }
+`;
+
+export const LOCAL_LINKS = gql`
+  query {
     Links @client {
       id
       label

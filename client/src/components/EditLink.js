@@ -1,6 +1,6 @@
 import React, { useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_LOCAL_LINKS, GET_LOCAL_NODES } from '../queries/LocalQueries';
+import { LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { DELETE_LINK } from '../queries/ServerMutations';
@@ -10,7 +10,7 @@ import { UPDATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { arrowOptions, typeOptions } from '../linkOptions';
 
 const EditLink = ( { activeItem, client, refetch } ) => {
-	const { data: { Links } } = useQuery( GET_LOCAL_LINKS );
+	const { data: { Links } } = useQuery( LOCAL_LINKS );
 	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = Links.find( link => link.id === activeItem.itemId );
 
 	const inputs = {
@@ -21,7 +21,7 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 		seq: seq ? seq : { group: '', seq: '' },
 	};
 
-	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
+	const { data: { Nodes } } = useQuery( LOCAL_NODES );
 	let nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 
 	const [ store, dispatch ] = useReducer(
@@ -63,6 +63,7 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
+		e.stopPropagation();
 		if ( enteredRequired( store.required ) ) {
 			const { required, x_end, y_end, seq } = store;
 			const props = { ...store.props, ...required };
@@ -78,7 +79,7 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 	const handleDelete = ( e ) => {
 		e.preventDefault();
 		runDelete( { variables: { id: activeItem.itemId } } )
-			.then( data => setActiveItem( client, 'app', 'app' ) )
+			.then( setActiveItem( client, 'app', 'app' ) )
 			.then( setTimeout( function() {
 				refetch();
 			}, 250 ) );
