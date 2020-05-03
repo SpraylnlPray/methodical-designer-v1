@@ -2,45 +2,13 @@ import React, { useReducer } from 'react';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
-import { CREATE_LINK, CREATE_LINK_END, CREATE_SEQUENCE } from '../queries/ServerMutations';
 import { enteredRequired } from '../utils';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
-
-const inputReducer = ( state, action ) => {
-	switch ( action.type ) {
-
-		case 'ADD_REQUIRED':
-			let { required } = state;
-			required[action.name] = action.value;
-			return { ...state, required };
-
-		case 'ADD_PROPS':
-			let { props } = state;
-			props[action.name] = action.value;
-			return { ...state, props };
-
-		case 'ADD_X_END':
-			let { x_end } = state;
-			x_end[action.name] = action.value;
-			return { ...state, x_end };
-
-		case 'ADD_Y_END':
-			let { y_end } = state;
-			y_end[action.name] = action.value;
-			return { ...state, y_end };
-
-		case 'ADD_SEQ':
-			let { seq } = state;
-			seq[action.name] = action.value;
-			return { ...state, seq };
-
-		default:
-			return state;
-	}
-};
+import { CREATE_LOCAL_LINK } from '../queries/LocalMutations';
+import { inputReducer } from '../InputReducer';
+import { arrowOptions, typeOptions } from '../linkOptions';
 
 function CreateLink( props ) {
-
 	const inputs = {
 		required: { label: '', type: '', x_id: '', y_id: '' },
 		props: { story: '', optional: false },
@@ -48,28 +16,16 @@ function CreateLink( props ) {
 		y_end: { arrow: '', note: '' },
 		seq: { group: '', seq: '' },
 	};
+
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
 	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
-	const typeOptions = [
-		{ 'text': 'Part Of', 'value': 'PartOf' },
-		{ 'text': 'Trigger', 'value': 'Trigger' },
-		{ 'text': 'Read', 'value': 'Read' },
-		{ 'text': 'Mutate', 'value': 'Mutate' },
-		{ 'text': 'Generic', 'value': 'Generic' },
-	];
-	const arrowOptions = [
-		{ 'text': 'Default', 'value': 'default' },
-	];
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
 		{ ...inputs },
 	);
 
-	// update function doesn't work here because somehow the returned link doesn't have x and y (?)
-	const [ runCreateLink, { data, loading, error } ] = useMutation( CREATE_LINK );
-	const [ runCreateEnd ] = useMutation( CREATE_LINK_END );
-	const [ runCreateSeq ] = useMutation( CREATE_SEQUENCE );
+	const [ runCreateLink, { data, loading, error } ] = useMutation( CREATE_LOCAL_LINK );
 
 	const handleEndChange = ( e, data ) => {
 		const name = data.name;
@@ -103,32 +59,9 @@ function CreateLink( props ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
-			runCreateLink( { variables: { ...store.required, props: store.props } } )
-				.then( data => {
-					const { data: { CreateLink: { link: { id } } } } = data;
-					if ( store.x_end.arrow.length > 0 || store.x_end.note.length > 0 ) {
-						let arrow = store.x_end.arrow;
-						if ( arrow.length === 0 ) {
-							arrow = 'none';
-						}
-						runCreateEnd( { variables: { id: id, props: { arrow, note: store.x_end.note, xy: 'x' } } } );
-					}
-					if ( store.y_end.arrow.length > 0 || store.y_end.note.length > 0 ) {
-						let arrow = store.y_end.arrow;
-						if ( arrow.length === 0 ) {
-							arrow = 'none';
-						}
-						runCreateEnd( { variables: { id: id, props: { arrow, note: store.y_end.note, xy: 'y' } } } );
-					}
-					if ( store.seq.group.length > 0 || store.seq.seq.length > 0 ) {
-						let seq = Number( store.seq.seq );
-						runCreateSeq( { variables: { id: id, props: { seq, group: store.seq.group } } } );
-					}
-				} )
-				// timeout because otherwise the fetched data doesn't contain the new link (?)
-				.then( setTimeout( function() {
-					props.refetch();
-				}, 400 ) )
+			const { required, props, x_end, y_end, seq } = store;
+			const variables = { ...required, props, x_end, y_end, seq };
+			runCreateLink( { variables } )
 				.catch( e => console.log( e ) );
 		}
 		else {

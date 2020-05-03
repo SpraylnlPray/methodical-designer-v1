@@ -3,38 +3,23 @@ import { useMutation, useQuery } from '@apollo/client';
 import { GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
-import { DELETE_NODE, UPDATE_NODE } from '../queries/ServerMutations';
+import { DELETE_NODE } from '../queries/ServerMutations';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
+import { UPDATE_LOCAL_NODE } from '../queries/LocalMutations';
+import { typeOptions } from '../nodeOptions';
 
 const EditNode = ( { activeItem, client, refetch } ) => {
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
 	const { label, type, story, synchronous, unreliable } = Nodes.find( node => node.id === activeItem.itemId );
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
 
-	const typeOptions = [
-		{ 'text': 'API', 'value': 'API' },
-		{ 'text': 'Event', 'value': 'Event' },
-		{ 'text': 'Persistence', 'value': 'Persistence' },
-		{ 'text': 'Abstract User Interface', 'value': 'AbstractUserInterface' },
-		{ 'text': 'Query', 'value': 'Query' },
-	];
-
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
 		{ ...inputs, justMutated: false },
 	);
 
-	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_NODE, {
-		update( cache, { data } ) {
-			let { Nodes } = cache.readQuery( { query: GET_LOCAL_NODES } );
-			Nodes = Nodes.filter( node => node.id !== data.UpdateNode.node.id );
-			cache.writeQuery( {
-				query: GET_LOCAL_NODES,
-				data: { Nodes: Nodes.concat( [ data.UpdateNode.node ] ) },
-			} );
-		},
-	} );
+	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_NODE );
 	const [ runDelete ] = useMutation( DELETE_NODE );
 
 	const handleRequiredChange = ( e, data ) => {

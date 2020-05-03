@@ -3,35 +3,45 @@ import { useMutation, useQuery } from '@apollo/client';
 import { GET_LOCAL_LINKS, GET_LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
-import { DELETE_LINK, UPDATE_LINK } from '../queries/ServerMutations';
+import { DELETE_LINK } from '../queries/ServerMutations';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
+import { UPDATE_LOCAL_LINK } from '../queries/LocalMutations';
+import { arrowOptions, typeOptions } from '../linkOptions';
 
 const EditLink = ( { activeItem, client, refetch } ) => {
 	const { data: { Links } } = useQuery( GET_LOCAL_LINKS );
-	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = Links.find( link => link.id === activeItem.itemId );
-	const inputs = { required: { label, type, x_id, y_id }, props: { story: story ? story : '', optional } };
+	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = Links.find( link => link.id === activeItem.itemId );
+
+	const inputs = {
+		required: { label, type, x_id, y_id },
+		props: { story: story ? story : '', optional },
+		x_end: x_end ? x_end : { arrow: '', note: '' },
+		y_end: y_end ? y_end : { arrow: '', note: '' },
+		seq: seq ? seq : { group: '', seq: '' },
+	};
 
 	const { data: { Nodes } } = useQuery( GET_LOCAL_NODES );
 	let nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
-	if ( Nodes ) {
-		nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
-	}
-	const typeOptions = [
-		{ 'text': 'Part Of', 'value': 'PartOf' },
-		{ 'text': 'Trigger', 'value': 'Trigger' },
-		{ 'text': 'Read', 'value': 'Read' },
-		{ 'text': 'Mutate', 'value': 'Mutate' },
-		{ 'text': 'Generic', 'value': 'Generic' },
-	];
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
 		{ ...inputs },
 	);
 
-	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LINK );
+	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_LINK );
 	const [ runDelete ] = useMutation( DELETE_LINK );
+
+	const handleEndChange = ( e, data ) => {
+		const name = data.name;
+		const value = data.value;
+		if ( data.placeholder.toLowerCase().includes( 'x' ) ) {
+			dispatch( { type: 'ADD_X_END', name, value } );
+		}
+		else if ( data.placeholder.toLowerCase().includes( 'y' ) ) {
+			dispatch( { type: 'ADD_Y_END', name, value } );
+		}
+	};
 
 	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;
@@ -45,17 +55,18 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 		dispatch( { type: 'ADD_PROPS', name, value } );
 	};
 
+	const handleSeqChange = ( e, data ) => {
+		const name = data.name;
+		const value = data.value;
+		dispatch( { type: 'ADD_SEQ', name, value } );
+	};
+
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
-			// in this query all entries are optional as they can be edited or not
-			// at some point I'll have to refactor this on the server side
-			let props = { ...store.props, ...store.required };
-			runUpdate( { variables: { id: activeItem.itemId, props } } )
-				// timeout because otherwise the fetched data doesn't contain the new link (?)
-				.then( setTimeout( function() {
-					refetch();
-				}, 100 ) )
+			const { required, x_end, y_end, seq } = store;
+			const props = { ...store.props, ...required };
+			runUpdate( { variables: { id: activeItem.itemId, props, x_end, y_end, seq } } )
 				.catch( e => console.log( e ) );
 		}
 		else {
@@ -118,6 +129,28 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 					/>
 					<Form.Dropdown
 						fluid
+						clearable
+						search
+						selection
+						className='create-required-select create-input'
+						label='X-Arrow'
+						placeholder='X-Arrow'
+						name='arrow'
+						value={ store.x_end['arrow'] }
+						options={ arrowOptions }
+						onChange={ handleEndChange }
+					/>
+					<Form.Input
+						fluid
+						className='create-required-select create-input'
+						label='X-Note'
+						placeholder='X-Note'
+						onChange={ handleEndChange }
+						name='note'
+						value={ store.x_end['note'] }
+					/>
+					<Form.Dropdown
+						fluid
 						className='create-required-select create-input'
 						label='Y-Node'
 						placeholder='Y-Node'
@@ -130,6 +163,28 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 						name='y_id'
 						value={ store.required['y_id'] }
 					/>
+					<Form.Dropdown
+						fluid
+						clearable
+						search
+						selection
+						className='create-required-select create-input'
+						label='Y-Arrow'
+						placeholder='Y-Arrow'
+						name='arrow'
+						value={ store.y_end['arrow'] }
+						options={ arrowOptions }
+						onChange={ handleEndChange }
+					/>
+					<Form.Input
+						fluid
+						className='create-required-select create-input'
+						label='Y-Note'
+						placeholder='Y-Note'
+						onChange={ handleEndChange }
+						name='note'
+						value={ store.y_end['note'] }
+					/>
 					<Form.Input
 						fluid
 						className='create-required-input create-input'
@@ -138,6 +193,24 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 						onChange={ handlePropsChange }
 						name='story'
 						value={ store.props['story'] }
+					/>
+					<Form.Input
+						fluid
+						className='create-required-input create-input'
+						label='Sequence Group'
+						placeholder='Group'
+						onChange={ handleSeqChange }
+						name='group'
+						value={ store.seq['group'] }
+					/>
+					<Form.Input
+						fluid
+						className='create-required-input create-input'
+						label='Sequence Number'
+						placeholder='0'
+						onChange={ handleSeqChange }
+						name='seq'
+						value={ store.seq['seq'] }
 					/>
 					<Form.Checkbox
 						className='create-input'

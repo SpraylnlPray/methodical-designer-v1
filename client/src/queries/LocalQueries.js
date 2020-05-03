@@ -36,6 +36,18 @@ export const GET_LOCAL_LINKS = gql`
       y {
         id
       }
+      x_end {
+        arrow
+        note
+      }
+      y_end {
+        arrow
+        note
+      }
+      sequence {
+        group
+        seq
+      }
     }
   }
 `;
