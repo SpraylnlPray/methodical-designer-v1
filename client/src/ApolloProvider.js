@@ -4,7 +4,7 @@ import { createHttpLink } from 'apollo-link-http';
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import gql from 'graphql-tag';
 import { generateLocalUUID } from './utils';
-import { DELETED_NODE_IDS, LOCAL_LINKS, LOCAL_NODES } from './queries/LocalQueries';
+import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS, LOCAL_NODES } from './queries/LocalQueries';
 
 const httpLink = createHttpLink( {
 	uri: 'http://localhost:8080/graphql',
@@ -15,12 +15,8 @@ const cache = new InMemoryCache( {
 	typePolicies: {
 		Query: {
 			fields: {
-				Node( existingData, { args, toReference } ) {
-					console.log( 'hello from Node' );
-					return existingData;
-				},
 				Nodes( existingData, { args, toReference } ) {
-					console.log( 'hello from Nodes' );
+					// console.log( 'hello from Nodes' );
 					return existingData;
 				},
 			},
@@ -36,13 +32,15 @@ const client = new ApolloClient( {
 			addNode: ( _root, variables, { cache } ) => {
 				const { label, props, type } = variables;
 				const { story, synchronous, unreliable } = props;
+				const { Nodes } = cache.readQuery( { query: LOCAL_NODES } );
 
-				cache.modify( 'ROOT_QUERY', {
-					Nodes( ...args ) {
-						const newId = generateLocalUUID();
-						const newNode = { id: newId, label, type, story, synchronous, unreliable, localNode: true };
-						return args[0].concat( [ newNode ] );
-					},
+				const newId = generateLocalUUID();
+				const newNode = { id: newId, label, type, story, synchronous, unreliable, localNode: true };
+				const newNodes = Nodes.concat( newNode );
+
+				cache.writeQuery( {
+					query: LOCAL_NODES,
+					data: { Nodes: newNodes },
 				} );
 			},
 			addLink: ( _root, variables, { cache } ) => {
@@ -50,13 +48,15 @@ const client = new ApolloClient( {
 				const { optional, story } = props;
 				const x = { id: x_id };
 				const y = { id: y_id };
+				const { Links } = cache.readQuery( { query: LOCAL_LINKS } );
 
-				cache.modify( 'ROOT_QUERY', {
-					Links( ...args ) {
-						const newId = generateLocalUUID();
-						const newLink = { id: newId, label, type, x, y, optional, story, x_end, y_end, sequence: seq };
-						return args[0].concat( [ newLink ] );
-					},
+				const newId = generateLocalUUID();
+				const newLink = { id: newId, label, type, x, y, optional, story, x_end, y_end, sequence: seq };
+				const newLinks = Links.concat( newLink );
+
+				cache.writeQuery( {
+					query: LOCAL_LINKS,
+					data: { Links: newLinks },
 				} );
 			},
 
@@ -94,7 +94,7 @@ const client = new ApolloClient( {
 					type() {
 						return type;
 					},
-					seq() {
+					sequence() {
 						return seq;
 					},
 					x() {
@@ -120,17 +120,22 @@ const client = new ApolloClient( {
 
 			deleteNode: ( _root, variables, { cache } ) => {
 				const { Nodes } = cache.readQuery( { query: LOCAL_NODES } );
-				const { deletedNodes } = cache.readQuery( { query: DELETED_NODE_IDS } );
+				const { deletedNodes } = cache.readQuery( { query: DELETED_NODES } );
 				const { Links } = cache.readQuery( { query: LOCAL_LINKS } );
+				const { deletedLinks } = cache.readQuery( { query: DELETED_LINKS } );
 
-				let nodesCopy = Nodes.concat();
-				let nodeToDelete = nodesCopy.find( node => node.id === variables.id );
-				nodesCopy = nodesCopy.filter( node => node.id !== variables.id );
+				let nodeToDelete = Nodes.find( node => node.id === variables.id );
+				let newNodes = Nodes.filter( node => node.id !== variables.id );
 				let linksCopy = JSON.parse( JSON.stringify( Links ) );
+				let linksToDelete = [];
 
-				// todo: handling for when both nodes are same and this node gets deleted
 				linksCopy = linksCopy.map( link => {
-					if ( link.x.id === nodeToDelete.id ) {
+					let sameNodes = link.x.id === link.y.id;
+					let isToDeleteNode = link.x.id === nodeToDelete.id;
+					if ( sameNodes && isToDeleteNode ) {
+						linksToDelete.push( link );
+					}
+					else if ( link.x.id === nodeToDelete.id ) {
 						link.x.id = link.y.id;
 					}
 					else if ( link.y.id === nodeToDelete.id ) {
@@ -139,9 +144,25 @@ const client = new ApolloClient( {
 					return link;
 				} );
 
+				linksCopy = linksCopy.filter( link => {
+					for ( let deletedLink of linksToDelete ) {
+						if ( link.id === deletedLink.id ) {
+							return false;
+						}
+					}
+					return true;
+				} );
+
 				cache.writeQuery( {
 					query: LOCAL_NODES,
-					data: { Nodes: nodesCopy },
+					data: { Nodes: newNodes },
+				} );
+
+				cache.writeQuery( {
+					query: DELETED_NODES,
+					data: {
+						deletedNodes: deletedNodes.concat( nodeToDelete ),
+					},
 				} );
 
 				cache.writeQuery( {
@@ -150,9 +171,30 @@ const client = new ApolloClient( {
 				} );
 
 				cache.writeQuery( {
-					query: DELETED_NODE_IDS,
+					query: DELETED_LINKS,
 					data: {
-						deletedNodes: deletedNodes.concat( nodeToDelete ),
+						deletedLinks: deletedLinks.concat( linksToDelete ),
+					},
+				} );
+			},
+			deleteLink: ( _root, variables, { cache } ) => {
+				const { Links } = cache.readQuery( { query: LOCAL_LINKS } );
+				const { deletedLinks } = cache.readQuery( { query: DELETED_LINKS } );
+
+				const newLinks = Links.filter( link => link.id !== variables.id );
+				const linkToDelete = Links.filter( link => link.id === variables.id );
+				console.log( 'new links', newLinks );
+				console.log( 'linnk to delete', linkToDelete );
+
+				cache.writeQuery( {
+					query: LOCAL_LINKS,
+					data: { Links: newLinks },
+				} );
+
+				cache.writeQuery( {
+					query: DELETED_LINKS,
+					data: {
+						deletedLinks: deletedLinks.concat( linkToDelete ),
 					},
 				} );
 			},

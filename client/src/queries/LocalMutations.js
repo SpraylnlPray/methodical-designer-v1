@@ -30,3 +30,9 @@ export const DELETE_LOCAL_NODE = gql`
     deleteNode(id: $id) @client
   }
 `;
+
+export const DELETE_LOCAL_LINK = gql`
+  mutation DeleteLocalLink($id: ID!) {
+    deleteLink(id: $id) @client
+  }
+`;

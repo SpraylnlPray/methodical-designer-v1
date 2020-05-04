@@ -3,15 +3,15 @@ import { useMutation, useQuery } from '@apollo/client';
 import { LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
 import Status from './Status';
-import { DELETE_LINK } from '../queries/ServerMutations';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
-import { UPDATE_LOCAL_LINK } from '../queries/LocalMutations';
+import { DELETE_LOCAL_LINK, UPDATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { arrowOptions, typeOptions } from '../linkOptions';
 
-const EditLink = ( { activeItem, client, refetch } ) => {
+const EditLink = ( { activeItem, client } ) => {
 	const { data: { Links } } = useQuery( LOCAL_LINKS );
-	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = Links.find( link => link.id === activeItem.itemId );
+	const LinksCopy = JSON.parse( JSON.stringify( Links ) );
+	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = LinksCopy.find( link => link.id === activeItem.itemId );
 
 	const inputs = {
 		required: { label, type, x_id, y_id },
@@ -30,7 +30,7 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 	);
 
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_LINK );
-	const [ runDelete ] = useMutation( DELETE_LINK );
+	const [ runDelete ] = useMutation( DELETE_LOCAL_LINK );
 
 	const handleEndChange = ( e, data ) => {
 		const name = data.name;
@@ -78,11 +78,9 @@ const EditLink = ( { activeItem, client, refetch } ) => {
 
 	const handleDelete = ( e ) => {
 		e.preventDefault();
-		runDelete( { variables: { id: activeItem.itemId } } )
-			.then( setActiveItem( client, 'app', 'app' ) )
-			.then( setTimeout( function() {
-				refetch();
-			}, 250 ) );
+		e.stopPropagation();
+		runDelete( { variables: { id: activeItem.itemId } } );
+		setActiveItem( client, 'app', 'app' );
 	};
 
 	return (

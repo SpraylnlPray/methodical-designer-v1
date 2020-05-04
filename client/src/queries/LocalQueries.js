@@ -22,9 +22,17 @@ export const LOCAL_NODES = gql`
   }
 `;
 
-export const DELETED_NODE_IDS = gql`
+export const DELETED_NODES = gql`
   query {
     deletedNodes @client {
+      id
+    }
+  }
+`;
+
+export const DELETED_LINKS = gql`
+  query {
+    deletedLinks @client {
       id
     }
   }
