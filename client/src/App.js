@@ -7,7 +7,7 @@ import { setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import { CREATE_NODE } from './queries/ServerMutations';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
-import { LOCAL_NODES } from './queries/LocalQueries';
+import { LOCAL_NODES_TAG } from './queries/LocalQueries';
 
 function App() {
 	const id = 'app';
@@ -27,17 +27,20 @@ function App() {
 	const { data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES );
 	const { data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS );
 
-	const { data } = useQuery( LOCAL_NODES );
+	const { data: localNodeData } = useQuery( LOCAL_NODES_TAG );
 
 	const handleSave = e => {
-		if ( data?.Nodes ) {
-			const { Nodes } = data;
+		if ( localNodeData?.Nodes ) {
+			const { Nodes } = localNodeData;
 			for ( let node of Nodes ) {
-				if ( Number( node.id ) < 10000 ) {
-					const { label, story, synchronous, type, unreliable } = node;
-					runCreateNode( { variables: { label, type, props: { story, synchronous, unreliable } } } );
+				if ( node.localNode ) {
+					const { id, label, story, synchronous, type, unreliable } = node;
+					const variables = { id, label, type, props: { story, synchronous, unreliable } };
+					runCreateNode( { variables } );
 				}
 			}
+			// todo: find a way to wait long enough
+			// nodeRefetch();
 		}
 	};
 

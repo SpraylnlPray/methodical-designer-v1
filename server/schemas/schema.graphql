@@ -145,8 +145,8 @@ input SequencePropertyInput{
 
 type Mutation{
   SeedDB: seedReturn
-  CreateNode(label: String!, type: NodeType!, props: NodeCreateInput): NodeOperationReturn
-  CreateLink(label: String!, x_id: ID!, y_id: ID!, type: LinkType!, props: LinkCreateInput): LinkOperationReturn
+  CreateNode(id: ID!, label: String!, type: NodeType!, props: NodeCreateInput): NodeOperationReturn
+  CreateLink(id: ID!, label: String!, x_id: ID!, y_id: ID!, type: LinkType!, props: LinkCreateInput): LinkOperationReturn
   CreateSequence(link_id: ID!, props: SequencePropertyInput): SequenceOperationReturn
   CreateLinkEnd(link_id: ID!, props: LinkEndInput): LinkEndOperationReturn
 

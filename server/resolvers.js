@@ -23,7 +23,7 @@ const resolvers = {
 			try {
 				const session = ctx.driver.session();
 				const query = `
-					CREATE (n:Node:${ args.type } {id: randomUUID(), label: $label, type: $type})
+					CREATE (n:Node:${ args.type } {id: $id, label: $label, type: $type})
 					SET n += $props
 					RETURN n`;
 				const results = await session.run( query, args );
@@ -41,7 +41,7 @@ const resolvers = {
 			try {
 				const session = ctx.driver.session();
 				const query = `
-					CREATE (l:Link:${ args.type } {id: randomUUID()})
+					CREATE (l:Link:${ args.type } {id: $id})
 					SET l += {x_id: $x_id, y_id: $y_id, type: $type, label: $label}
 					SET l += $props
 					WITH l AS l

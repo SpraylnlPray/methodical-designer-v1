@@ -4,7 +4,7 @@ import { createHttpLink } from 'apollo-link-http';
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import gql from 'graphql-tag';
 import { generateLocalUUID } from './utils';
-import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS, LOCAL_NODES } from './queries/LocalQueries';
+import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS, LOCAL_NODES, LOCAL_NODES_TAG } from './queries/LocalQueries';
 
 const httpLink = createHttpLink( {
 	uri: 'http://localhost:8080/graphql',
@@ -16,8 +16,14 @@ const cache = new InMemoryCache( {
 		Query: {
 			fields: {
 				Nodes( existingData, { args, toReference } ) {
-					// console.log( 'hello from Nodes' );
 					return existingData;
+				},
+			},
+		},
+		Node: {
+			fields: {
+				localNode( existingData ) {
+					return existingData || false;
 				},
 			},
 		},
@@ -39,7 +45,7 @@ const client = new ApolloClient( {
 				const newNodes = Nodes.concat( newNode );
 
 				cache.writeQuery( {
-					query: LOCAL_NODES,
+					query: LOCAL_NODES_TAG,
 					data: { Nodes: newNodes },
 				} );
 			},
@@ -119,6 +125,7 @@ const client = new ApolloClient( {
 			},
 
 			deleteNode: ( _root, variables, { cache } ) => {
+				console.log( 'reading local nodes' );
 				const { Nodes } = cache.readQuery( { query: LOCAL_NODES } );
 				const { deletedNodes } = cache.readQuery( { query: DELETED_NODES } );
 				const { Links } = cache.readQuery( { query: LOCAL_LINKS } );

@@ -22,6 +22,20 @@ export const LOCAL_NODES = gql`
   }
 `;
 
+export const LOCAL_NODES_TAG = gql`
+  query {
+    Nodes @client {
+      id
+      label
+      type
+      story
+      synchronous
+      unreliable
+      localNode
+    }
+  }
+`;
+
 export const DELETED_NODES = gql`
   query {
     deletedNodes @client {
