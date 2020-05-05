@@ -55,51 +55,50 @@ function App() {
 			const { deletedNodes } = deletedNodesData;
 			const { deletedLinks } = deletedLinksData;
 
+			let promises = [];
+
 			for ( let node of createdNodes ) {
 				console.log( 'saving created node ', node );
 				const { id, label, story, synchronous, type, unreliable } = node;
 				const variables = { id, label, type, props: { story, synchronous, unreliable } };
-				runCreateNode( { variables } );
+				promises.push( runCreateNode( { variables } ) );
+
 			}
 			for ( let node of editedNodes ) {
 				console.log( 'saving updated node ', node );
 				const { id, label, story, synchronous, type, unreliable } = node;
 				const variables = { id, props: { label, type, story, synchronous, unreliable } };
-				runUpdateNode( { variables } );
+				promises.push( runUpdateNode( { variables } ) );
 			}
 			for ( let link of createdLinks ) {
 				console.log( 'saving created link ', link );
 				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 				const variables = { id, label, type, x_id, y_id, props: { story, optional } };
-				runCreateLink( { variables } );
+				promises.push( runCreateLink( { variables } ) );
+
 			}
 			for ( let link of editedLinks ) {
 				console.log( 'saving edited link ', link );
 				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 				const variables = { id, props: { story, optional, label, type, x_id, y_id } };
-				runUpdateLink( { variables } );
+				promises.push( runUpdateLink( { variables } ) );
 			}
 			for ( let link of deletedLinks ) {
 				console.log( 'deleting link ', link );
 				const { id } = link;
-				runDeleteLink( { variables: { id } } );
+				promises.push( runDeleteLink( { variables: { id } } ) );
 			}
 			for ( let node of deletedNodes ) {
 				console.log( 'deleting node ', node );
 				const { id } = node;
-				runDeleteNode( { variables: { id } } );
+				promises.push( runDeleteNode( { variables: { id } } ) );
 			}
 
-			// todo: when data is fetched reset the local cache so that the 'updated' and 'created' are being reset
-			// todo: find a way to wait long enough
-			// nodeRefetch();
-
-			setTimeout( () => {
-				console.log( 'refetching now' );
-				nodeRefetch()
-					.then( data => console.log( 'data from node refetch: ', data ) );
-				linkRefetch();
-			}, 1000 );
+			Promise.allSettled( promises )
+				.then( () => {
+					nodeRefetch();
+					linkRefetch();
+				} );
 		}
 	};
 

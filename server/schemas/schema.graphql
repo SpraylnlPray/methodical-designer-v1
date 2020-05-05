@@ -79,6 +79,8 @@ type Node implements INode & IDisplayable{
   Links: [Link] @cypher(statement: "MATCH (this)--(l:Link) RETURN l")
   synchronous: Boolean
   unreliable: Boolean
+  edited: Boolean
+  created: Boolean
 }
 
 type Link implements ILink & IDisplayable{
@@ -92,6 +94,8 @@ type Link implements ILink & IDisplayable{
   sequence: SequenceProperty @cypher(statement: "MATCH (this)-[:IS]->(s:Sequence) RETURN s")
   story: URI
   optional: Boolean
+  edited: Boolean
+  created: Boolean
 }
 
 type SequenceProperty{

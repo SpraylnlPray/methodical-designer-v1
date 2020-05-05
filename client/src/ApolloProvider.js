@@ -25,7 +25,6 @@ const cache = new InMemoryCache( {
 		Node: {
 			fields: {
 				created( existingData ) {
-					console.log( 'hello from created' );
 					return existingData || false;
 				},
 				edited( existingData ) {

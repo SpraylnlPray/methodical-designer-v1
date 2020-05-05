@@ -20,6 +20,9 @@ const defaultNode = {
 	type: 'None',
 	synchronous: false,
 	unreliable: false,
+	// todo: this is not ideal as it is information only relevant to the editor
+	edited: false,
+	created: false,
 };
 const defaultLinkEnd = { note: 'None', arrow: 'default' };
 

@@ -1,16 +1,18 @@
 import gql from 'graphql-tag';
 
 export const GET_SERVER_NODES = gql`
-	query nodes{
-		Nodes{
+  query nodes{
+    Nodes{
       id
       label
       type
       story
       synchronous
-      unreliable      
-		}
-	}
+      unreliable
+      created
+      edited
+    }
+  }
 `;
 
 export const GET_SERVER_LINKS = gql`
@@ -39,6 +41,8 @@ export const GET_SERVER_LINKS = gql`
         group
         seq
       }
+      created
+      edited
     }
   }
 `;
