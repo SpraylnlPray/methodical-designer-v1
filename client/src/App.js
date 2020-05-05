@@ -11,6 +11,9 @@ import {
 } from './queries/ServerMutations';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from './queries/LocalQueries';
+import {
+	deleteLinkEnd, deleteSequence, existsLinkEnd, existsSequence, saveLinkEnd, saveSequence,
+} from './TransactionUtils';
 
 function App() {
 	const id = 'app';
@@ -79,38 +82,23 @@ function App() {
 				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 				const variables = { id, label, type, x_id, y_id, props: { story, optional } };
 				promises.push( runCreateLink( { variables } ) );
-				if ( link.sequence.group.length > 0 || link.sequence.seq.length > 0 ) {
-					console.log( 'saving sequence ', link.sequence, ' on link ', link );
-					const { group, seq } = link.sequence;
-					const variables = { link_id: id, props: { group, seq: Number( seq ) } };
-					promises.push( runMergeSeq( { variables } ) );
+				if ( existsSequence( link ) ) {
+					saveSequence( link, promises, runMergeSeq );
 				}
 				else {
-					console.log( 'deleting sequence ', link.sequence, ' on link ', link );
-					const { id: link_id } = link;
-					promises.push( runDeleteSeq( { variables: { link_id } } ) );
+					deleteSequence( link, promises, runDeleteSeq );
 				}
-				if ( link.x_end.arrow.length > 0 || link.x_end.note.length > 0 ) {
-					console.log( 'saving link end ', link.x_end, ' on link ', link );
-					const { arrow, note } = link.x_end;
-					const variables = { link_id: id, props: { arrow, note, xy: 'x' } };
-					promises.push( runMergeLinkEnd( { variables } ) );
+				if ( existsLinkEnd( link, 'x_end' ) ) {
+					saveLinkEnd( link, promises, 'x_end', runMergeLinkEnd );
 				}
 				else {
-					console.log( 'deleting link end ', link.x_end, ' on link ', link );
-					const variables = { link_id: id, xy: 'x' };
-					promises.push( runDeleteLinkEnd( { variables } ) );
+					deleteLinkEnd( link, promises, 'x_end', runDeleteLinkEnd );
 				}
-				if ( link.y_end.arrow.length > 0 || link.y_end.note.length > 0 ) {
-					console.log( 'saving link end ', link.y_end, ' on link ', link );
-					const { arrow, note } = link.y_end;
-					const variables = { link_id: id, props: { arrow, note, xy: 'y' } };
-					promises.push( runMergeLinkEnd( { variables } ) );
+				if ( existsLinkEnd( link, 'y_end' ) ) {
+					saveLinkEnd( link, promises, 'y_end', runMergeLinkEnd );
 				}
 				else {
-					console.log( 'deleting link end ', link.y_end, ' on link ', link );
-					const variables = { link_id: id, xy: 'y' };
-					promises.push( runDeleteLinkEnd( { variables } ) );
+					deleteLinkEnd( link, promises, 'y_end', runDeleteLinkEnd );
 				}
 			}
 			for ( let link of editedLinks ) {
@@ -118,38 +106,23 @@ function App() {
 				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 				const variables = { id, props: { story, optional, label, type, x_id, y_id } };
 				promises.push( runUpdateLink( { variables } ) );
-				if ( link.sequence.group.length > 0 || link.sequence.seq.length > 0 ) {
-					console.log( 'saving sequence ', link.sequence, ' on link ', link );
-					const { group, seq } = link.sequence;
-					const variables = { link_id: id, props: { group, seq: Number( seq ) } };
-					promises.push( runMergeSeq( { variables } ) );
+				if ( existsSequence( link ) ) {
+					saveSequence( link, promises, runMergeSeq );
 				}
 				else {
-					console.log( 'deleting sequence ', link.sequence, ' on link ', link );
-					const { id: link_id } = link;
-					promises.push( runDeleteSeq( { variables: { link_id } } ) );
+					deleteSequence( link, promises, runDeleteSeq );
 				}
-				if ( link.x_end.arrow.length > 0 || link.x_end.note.length > 0 ) {
-					console.log( 'saving link end ', link.x_end, ' on link ', link );
-					const { arrow, note } = link.x_end;
-					const variables = { link_id: id, props: { arrow, note, xy: 'x' } };
-					promises.push( runMergeLinkEnd( { variables } ) );
+				if ( existsLinkEnd( link, 'x_end' ) ) {
+					saveLinkEnd( link, promises, 'x_end', runMergeLinkEnd );
 				}
 				else {
-					console.log( 'deleting link end ', link.x_end, ' on link ', link );
-					const variables = { link_id: id, xy: 'x' };
-					promises.push( runDeleteLinkEnd( { variables } ) );
+					deleteLinkEnd( link, promises, 'x_end', runDeleteLinkEnd );
 				}
-				if ( link.y_end.arrow.length > 0 || link.y_end.note.length > 0 ) {
-					console.log( 'saving link end ', link.y_end, ' on link ', link );
-					const { arrow, note } = link.y_end;
-					const variables = { link_id: id, props: { arrow, note, xy: 'y' } };
-					promises.push( runMergeLinkEnd( { variables } ) );
+				if ( existsLinkEnd( link, 'y_end' ) ) {
+					saveLinkEnd( link, promises, 'y_end', runMergeLinkEnd );
 				}
 				else {
-					console.log( 'deleting link end ', link.y_end, ' on link ', link );
-					const variables = { link_id: id, xy: 'y' };
-					promises.push( runDeleteLinkEnd( { variables } ) );
+					deleteLinkEnd( link, promises, 'y_end', runDeleteLinkEnd );
 				}
 			}
 			for ( let link of deletedLinks ) {
