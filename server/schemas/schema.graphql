@@ -154,6 +154,9 @@ type Mutation{
   CreateSequence(link_id: ID!, props: SequencePropertyInput): SequenceOperationReturn
   CreateLinkEnd(link_id: ID!, props: LinkEndInput): LinkEndOperationReturn
 
+  MergeSequence(link_id: ID!, props: SequencePropertyInput): SequenceOperationReturn
+  MergeLinkEnd(link_id: ID!, props: LinkEndInput): LinkEndOperationReturn
+
   UpdateNode(id: ID!, props: NodeInput): NodeOperationReturn
   UpdateLink(id: ID!, props: LinkInput): LinkOperationReturn
   UpdateSequence(link_id: ID!, props: SequencePropertyInput): SequenceOperationReturn

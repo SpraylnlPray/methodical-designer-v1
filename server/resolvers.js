@@ -67,13 +67,13 @@ const resolvers = {
 				args.props.seq = neo4j.int( args.props.seq );
 				const session = ctx.driver.session();
 				const query = `
-				CREATE (s:Sequence {id: randomUUID()})
-				SET s += $props
-				WITH s AS s
-				MATCH (l:Link) WHERE l.id = $link_id
-				CREATE (l)-[:IS]->(s)
-				RETURN s, l
-			`;
+					CREATE (s:Sequence {id: randomUUID()})
+					SET s += $props
+					WITH s AS s
+					MATCH (l:Link) WHERE l.id = $link_id
+					CREATE (l)-[:IS]->(s)
+					RETURN s, l
+				`;
 				const results = await session.run( query, args );
 				const seq = Get( results, 's' );
 				seq.seq = neo4j.integer.toNumber( seq.seq );
@@ -92,13 +92,13 @@ const resolvers = {
 				const session = ctx.driver.session();
 				args = TakeKeysFromProps( args, 'xy' );
 				const query = `
-				CREATE (le:LinkEnd {id: randomUUID()})
-				SET le += $props
-				WITH le AS le
-				MATCH (l:Link) WHERE l.id = $link_id
-				CREATE (l)-[:${ args.xy.toUpperCase() }_END]->(le)
-				RETURN le, l
-			`;
+					CREATE (le:LinkEnd {id: randomUUID()})
+					SET le += $props
+					WITH le AS le
+					MATCH (l:Link) WHERE l.id = $link_id
+					CREATE (l)-[:${ args.xy.toUpperCase() }_END]->(le)
+					RETURN le, l
+				`;
 				const results = await session.run( query, args );
 				return {
 					...defaultRes,
@@ -112,7 +112,6 @@ const resolvers = {
 					success: false,
 				};
 			}
-
 		},
 
 		async UpdateNode( _, args, ctx ) {
@@ -175,6 +174,54 @@ const resolvers = {
 				return errorRes( e );
 			}
 		},
+
+		async MergeSequence( _, args, ctx ) {
+			try {
+				const session = ctx.driver.session();
+				const query = `
+					MATCH (l:Link) WHERE l.id = $link_id
+					MERGE (l)-[:IS]->(s:Sequence)
+					ON CREATE SET s.id = randomUUID(), s += $props
+					ON MATCH SET s += $props
+					RETURN l, s
+				`;
+
+				const results = await session.run( query, args );
+				return {
+					...defaultRes,
+					seq: PrepareReturn( results, 's', defaultSeq ),
+					link: PrepareReturn( results, 'l', defaultLinkEnd ),
+				};
+			}
+			catch ( e ) {
+				return errorRes( e );
+			}
+		},
+		async MergeLinkEnd( _, args, ctx ) {
+			try {
+				const session = ctx.driver.session();
+				console.log( 'args: ', args );
+				const query = `
+					MATCH (l:Link) WHERE l.id = $link_id
+					MERGE (l)-[:${ args.props.xy.toUpperCase() }_END]->(le:LinkEnd)
+					ON CREATE SET le.id = randomUUID(), le += $props
+					ON MATCH SET le += $props
+					RETURN le, l
+				`;
+				console.log( 'another test' );
+				const results = await session.run( query, args );
+				console.log( 'results: ', results.records );
+				return {
+					...defaultRes,
+					end: PrepareReturn( results, 'le', defaultLinkEnd ),
+					link: PrepareReturn( results, 'l', defaultLink ),
+				};
+			}
+			catch ( e ) {
+				return errorRes( e );
+			}
+		},
+
 		async UpdateSequence( _, args, ctx ) {
 			const session = ctx.driver.session();
 			args.props.seq = neo4j.int( args.props.seq );
@@ -218,7 +265,7 @@ const resolvers = {
 					DETACH DELETE n
 				`;
 				await session.run( deleteNodeQuery, args );
-
+				// todo: are these still necessary?
 				const formatLinksQuery = `
 					MATCH (l1:Link)
 					WHERE NOT (l1)-[:Y_NODE]->(:Node)
@@ -266,14 +313,14 @@ const resolvers = {
 			try {
 				const session = ctx.driver.session();
 				const query = `
-				MATCH (l:Link) WHERE l.id = $id
-				OPTIONAL MATCH (l)--(le:LinkEnd)
-				DETACH DELETE le
-				WITH l AS l
-				OPTIONAL MATCH (l)--(s:Sequence)
-				DETACH DELETE s
-				DETACH DELETE l
-			`;
+					MATCH (l:Link) WHERE l.id = $id
+					OPTIONAL MATCH (l)--(le:LinkEnd)
+					DETACH DELETE le
+					WITH l AS l
+					OPTIONAL MATCH (l)--(s:Sequence)
+					DETACH DELETE s
+					DETACH DELETE l
+				`;
 				await session.run( query, args );
 				return {
 					success: true,
@@ -291,7 +338,7 @@ const resolvers = {
 			const session = ctx.driver.session();
 			const query = `
 				MATCH (l:Link) WHERE l.id = $link_id
-				MATCH (l)-[:IS]->(s:Sequence)
+				OPTIONAL MATCH (l)-[:IS]->(s:Sequence)
 				DETACH DELETE s
 			`;
 			await session.run( query, args );

@@ -6,7 +6,8 @@ import './App.css';
 import { setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import {
-	CREATE_LINK, CREATE_NODE, DELETE_LINK, DELETE_NODE, UPDATE_LINK, UPDATE_NODE,
+	CREATE_LINK, CREATE_NODE, DELETE_LINK, DELETE_LINK_END, DELETE_NODE, DELETE_SEQUENCE, MERGE_LINK_END, MERGE_SEQUENCE,
+	UPDATE_LINK, UPDATE_NODE,
 } from './queries/ServerMutations';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from './queries/LocalQueries';
@@ -21,6 +22,10 @@ function App() {
 	const [ runUpdateLink ] = useMutation( UPDATE_LINK );
 	const [ runDeleteNode ] = useMutation( DELETE_NODE );
 	const [ runDeleteLink ] = useMutation( DELETE_LINK );
+	const [ runMergeSeq ] = useMutation( MERGE_SEQUENCE );
+	const [ runDeleteSeq ] = useMutation( DELETE_SEQUENCE );
+	const [ runMergeLinkEnd ] = useMutation( MERGE_LINK_END );
+	const [ runDeleteLinkEnd ] = useMutation( DELETE_LINK_END );
 
 	const handleClick = ( e ) => {
 		// this is for the editor. the editor can set this property to false as stopping the propagation of the vis
@@ -62,7 +67,6 @@ function App() {
 				const { id, label, story, synchronous, type, unreliable } = node;
 				const variables = { id, label, type, props: { story, synchronous, unreliable } };
 				promises.push( runCreateNode( { variables } ) );
-
 			}
 			for ( let node of editedNodes ) {
 				console.log( 'saving updated node ', node );
@@ -75,13 +79,78 @@ function App() {
 				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 				const variables = { id, label, type, x_id, y_id, props: { story, optional } };
 				promises.push( runCreateLink( { variables } ) );
-
+				if ( link.sequence.group.length > 0 || link.sequence.seq.length > 0 ) {
+					console.log( 'saving sequence ', link.sequence, ' on link ', link );
+					const { group, seq } = link.sequence;
+					const variables = { link_id: id, props: { group, seq: Number( seq ) } };
+					promises.push( runMergeSeq( { variables } ) );
+				}
+				else {
+					console.log( 'deleting sequence ', link.sequence, ' on link ', link );
+					const { id: link_id } = link;
+					promises.push( runDeleteSeq( { variables: { link_id } } ) );
+				}
+				if ( link.x_end.arrow.length > 0 || link.x_end.note.length > 0 ) {
+					console.log( 'saving link end ', link.x_end, ' on link ', link );
+					const { arrow, note } = link.x_end;
+					const variables = { link_id: id, props: { arrow, note, xy: 'x' } };
+					promises.push( runMergeLinkEnd( { variables } ) );
+				}
+				else {
+					console.log( 'deleting link end ', link.x_end, ' on link ', link );
+					const variables = { link_id: id, xy: 'x' };
+					promises.push( runDeleteLinkEnd( { variables } ) );
+				}
+				if ( link.y_end.arrow.length > 0 || link.y_end.note.length > 0 ) {
+					console.log( 'saving link end ', link.y_end, ' on link ', link );
+					const { arrow, note } = link.y_end;
+					const variables = { link_id: id, props: { arrow, note, xy: 'y' } };
+					promises.push( runMergeLinkEnd( { variables } ) );
+				}
+				else {
+					console.log( 'deleting link end ', link.y_end, ' on link ', link );
+					const variables = { link_id: id, xy: 'y' };
+					promises.push( runDeleteLinkEnd( { variables } ) );
+				}
 			}
 			for ( let link of editedLinks ) {
 				console.log( 'saving edited link ', link );
 				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 				const variables = { id, props: { story, optional, label, type, x_id, y_id } };
 				promises.push( runUpdateLink( { variables } ) );
+				if ( link.sequence.group.length > 0 || link.sequence.seq.length > 0 ) {
+					console.log( 'saving sequence ', link.sequence, ' on link ', link );
+					const { group, seq } = link.sequence;
+					const variables = { link_id: id, props: { group, seq: Number( seq ) } };
+					promises.push( runMergeSeq( { variables } ) );
+				}
+				else {
+					console.log( 'deleting sequence ', link.sequence, ' on link ', link );
+					const { id: link_id } = link;
+					promises.push( runDeleteSeq( { variables: { link_id } } ) );
+				}
+				if ( link.x_end.arrow.length > 0 || link.x_end.note.length > 0 ) {
+					console.log( 'saving link end ', link.x_end, ' on link ', link );
+					const { arrow, note } = link.x_end;
+					const variables = { link_id: id, props: { arrow, note, xy: 'x' } };
+					promises.push( runMergeLinkEnd( { variables } ) );
+				}
+				else {
+					console.log( 'deleting link end ', link.x_end, ' on link ', link );
+					const variables = { link_id: id, xy: 'x' };
+					promises.push( runDeleteLinkEnd( { variables } ) );
+				}
+				if ( link.y_end.arrow.length > 0 || link.y_end.note.length > 0 ) {
+					console.log( 'saving link end ', link.y_end, ' on link ', link );
+					const { arrow, note } = link.y_end;
+					const variables = { link_id: id, props: { arrow, note, xy: 'y' } };
+					promises.push( runMergeLinkEnd( { variables } ) );
+				}
+				else {
+					console.log( 'deleting link end ', link.y_end, ' on link ', link );
+					const variables = { link_id: id, xy: 'y' };
+					promises.push( runDeleteLinkEnd( { variables } ) );
+				}
 			}
 			for ( let link of deletedLinks ) {
 				console.log( 'deleting link ', link );

@@ -129,7 +129,6 @@ const client = new ApolloClient( {
 					linkToEdit[prop] = props[prop];
 				}
 				linkToEdit.edited = true;
-				console.log( 'link to edit after editing ', linkToEdit );
 
 				cache.writeQuery( {
 					query: LOCAL_LINKS_TAGS,
