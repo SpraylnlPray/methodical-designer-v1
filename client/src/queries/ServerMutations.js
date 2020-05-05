@@ -18,19 +18,19 @@ export const CREATE_NODE = gql`
 `;
 
 export const CREATE_LINK = gql`
-	mutation($label: String!, $type: LinkType!, $x_id: ID!, $y_id: ID! $props: LinkCreateInput){
-		CreateLink(label: $label, type: $type, x_id: $x_id, y_id: $y_id, props: $props){
-			success
-			message
-			link {
+  mutation($id: ID!, $label: String!, $type: LinkType!, $x_id: ID!, $y_id: ID! $props: LinkCreateInput){
+    CreateLink(id: $id, label: $label, type: $type, x_id: $x_id, y_id: $y_id, props: $props){
+      success
+      message
+      link {
         id
         label
         type
         story
         optional
-			}
-		}
-	}
+      }
+    }
+  }
 `;
 
 export const UPDATE_NODE = gql`

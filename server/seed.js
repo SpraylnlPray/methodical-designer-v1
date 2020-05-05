@@ -1,7 +1,7 @@
 const query = `
-	CREATE (ui:Node:AbstractUserInterface {id: randomUUID(), label: "UI", story: "Interaction point for the user", type: "AbstractUserInterface"})
-	CREATE (api:Node:API {id: randomUUID(), label: "Server", story: "Endpoint for requests, fetches and mutates data from/on the DB", type: "API"})
-	CREATE (pers:Node:Persistence {id: randomUUID(), label: "NeoDB", story: "Saves data for the methodical designer", type: "Persistence"})
+	CREATE (ui:Node:AbstractUserInterface {id: randomUUID(), label: "UI", story: "Interaction point for the user", type: "AbstractUserInterface", synchronous: false, unreliable: false})
+	CREATE (api:Node:API {id: randomUUID(), label: "Server", story: "Endpoint for requests, fetches and mutates data from/on the DB", type: "API", synchronous: false, unreliable: false})
+	CREATE (pers:Node:Persistence {id: randomUUID(), label: "NeoDB", story: "Saves data for the methodical designer", type: "Persistence", synchronous: false, unreliable: true})
 	CREATE (event:Node:Event {id: randomUUID(), label: "Create Node", story: "Event for creating a node", type: "Event", synchronous: false, unreliable: true})
 		
 	CREATE (l_Mutate_UI:Link:Mutate {id: randomUUID(), x_id: api.id, y_id: ui.id, label: "Mutates", story: "Populates the UI with data", type: "Mutate"})

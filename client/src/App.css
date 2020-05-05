@@ -54,3 +54,8 @@
 .overflow-managed {
     overflow: auto;
 }
+
+.head-area {
+    display: flex;
+    justify-content: space-between;
+}
