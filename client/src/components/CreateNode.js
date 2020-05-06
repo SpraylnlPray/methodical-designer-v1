@@ -5,16 +5,10 @@ import { inputReducer } from '../InputReducer';
 import { useMutation } from '@apollo/client';
 import { CREATE_LOCAL_NODE } from '../queries/LocalMutations';
 import { enteredRequired } from '../utils';
+import { typeOptions } from '../nodeOptions';
 
 function CreateNode( props ) {
 	const inputs = { required: { label: '', type: '' }, props: { story: '', synchronous: false, unreliable: false } };
-	const typeOptions = [
-		{ 'text': 'API', 'value': 'API' },
-		{ 'text': 'Event', 'value': 'Event' },
-		{ 'text': 'Persistence', 'value': 'Persistence' },
-		{ 'text': 'Abstract User Interface', 'value': 'AbstractUserInterface' },
-		{ 'text': 'Query', 'value': 'Query' },
-	];
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,

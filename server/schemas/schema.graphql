@@ -29,6 +29,14 @@ enum LinkType{
 enum ArrowType{
   default
   none
+  Sharp
+  Curve
+  Diamond
+  Arrow
+  Box
+  Triangle
+  Bar
+  InvTriangle
 }
 
 interface IReturnInfo{
