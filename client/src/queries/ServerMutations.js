@@ -92,32 +92,6 @@ export const DELETE_LINK = gql`
   }
 `;
 
-export const CREATE_LINK_END = gql`
-  mutation($id: ID!, $props: LinkEndInput) {
-    CreateLinkEnd(link_id: $id, props: $props) {
-      success
-      message
-      end {
-        note
-        arrow
-      }
-    }
-  }
-`;
-
-export const CREATE_SEQUENCE = gql`
-  mutation($id: ID!, $props: SequencePropertyInput) {
-    CreateSequence(link_id: $id, props: $props) {
-      message
-      success
-      seq {
-        group
-        seq
-      }
-    }
-  }
-`;
-
 export const MERGE_SEQUENCE = gql`
   mutation mergeSequence($link_id: ID!, $props: SequencePropertyInput) {
     MergeSequence(link_id: $link_id, props: $props) {

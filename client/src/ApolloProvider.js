@@ -184,7 +184,7 @@ const client = new ApolloClient( {
 				} );
 
 				cache.writeQuery( {
-					query: LOCAL_NODES,
+					query: LOCAL_NODES_TAGS,
 					data: { Nodes: newNodes },
 				} );
 
@@ -204,7 +204,7 @@ const client = new ApolloClient( {
 				} );
 
 				cache.writeQuery( {
-					query: LOCAL_LINKS,
+					query: LOCAL_LINKS_TAGS,
 					data: { Links: linksCopy },
 				} );
 

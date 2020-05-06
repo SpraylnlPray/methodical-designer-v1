@@ -281,24 +281,6 @@ const resolvers = {
 				`;
 				await session.run( cleanupQuery );
 
-				const formatLinksQuery = `
-					OPTIONAL MATCH (l1:Link)
-					WHERE NOT (l1)-[:Y_NODE]->(:Node)
-					SET l1.y_id = l1.x_id
-					WITH l1 as l1
-					MATCH (n1:Node) WHERE n1.id = l1.y_id
-					CREATE (l1)-[:Y_NODE]->(n1)
-					WITH l1 as l1, n1 as n1
-					OPTIONAL MATCH (l2:Link)
-					WHERE NOT (l2)-[:X_NODE]->(:Node)
-					SET l2.x_id = l2.y_id
-					WITH l2 as l2, l1 as l1, n1 as n1
-					MATCH (n2:Node) WHERE n2.id = l2.x_id
-					CREATE (l2)-[:X_NODE]->(n2)
-					RETURN l1, l2, n1, n2
-				`;
-				await session.run( formatLinksQuery );
-
 				return {
 					success: true,
 					id: args.id,

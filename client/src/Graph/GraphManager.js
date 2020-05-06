@@ -160,13 +160,13 @@ export default class GraphManager {
 		link.color = color;
 		link.arrows = {};
 
-		if ( x_end ) {
+		if ( x_end?.arrow?.length > 0 ) {
 			link.arrows.from = {
 				enabled: true,
 				type: ArrowShapes[x_end.arrow],
 			};
 		}
-		if ( y_end ) {
+		if ( y_end?.arrow?.length > 0 ) {
 			link.arrows.to = {
 				enabled: true,
 				scaleFactor: 1,

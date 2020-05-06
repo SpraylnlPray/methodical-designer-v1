@@ -61,6 +61,6 @@ export const deleteLinkOrNode = ( entity, promises, deleteFnc ) => {
 	promises.push( deleteFnc( { variables: { id } } ) );
 };
 
-export const existsSequence = ( link ) => link.sequence.group.length > 0 || link.sequence.seq.length > 0;
+export const existsSequence = ( link ) => link?.sequence?.group?.length > 0 || link?.sequence?.seq?.length > 0;
 
-export const existsLinkEnd = ( link, end ) => link[end].arrow.length > 0 || link[end].note.length > 0;
+export const existsLinkEnd = ( link, end ) => link[end]?.arrow?.length > 0 || link[end]?.note?.length > 0;
