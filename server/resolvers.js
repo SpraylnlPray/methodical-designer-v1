@@ -1,7 +1,7 @@
 const seedQuery = require( './seed' );
 const neo4j = require( 'neo4j-driver' );
 const { defaultNode, defaultLink, defaultSeq, defaultLinkEnd } = require( './defaults' );
-
+const { PrepareReturn, TakeKeysFromProps } = require( './ResolverUtils' );
 const defaultRes = { success: true, message: '' };
 const errorRes = e => ({ success: false, message: e.message });
 
@@ -35,7 +35,6 @@ const resolvers = {
 			catch ( e ) {
 				return errorRes( e );
 			}
-
 		},
 		async CreateLink( _, args, ctx ) {
 			try {
@@ -62,6 +61,8 @@ const resolvers = {
 				return errorRes( e );
 			}
 		},
+
+		// at the moment not used
 		async CreateSequence( _, args, ctx ) {
 			try {
 				args.props.seq = neo4j.int( args.props.seq );
@@ -87,6 +88,7 @@ const resolvers = {
 				return errorRes( e );
 			}
 		},
+		// at the moment not used
 		async CreateLinkEnd( _, args, ctx ) {
 			try {
 				const session = ctx.driver.session();
@@ -118,10 +120,10 @@ const resolvers = {
 			try {
 				const session = ctx.driver.session();
 				const query = `
-				MATCH (n:Node) WHERE n.id = $id
-				SET n += $props
-				RETURN n
-			`;
+					MATCH (n:Node) WHERE n.id = $id
+					SET n += $props
+					RETURN n
+				`;
 				const results = await session.run( query, args );
 				return {
 					...defaultRes,
@@ -136,33 +138,33 @@ const resolvers = {
 			try {
 				const session = ctx.driver.session();
 				let query = `
-				MATCH (l:Link) WHERE l.id = $id
-				SET l += $props
-			`;
+					MATCH (l:Link) WHERE l.id = $id
+					SET l += $props
+				`;
 
 				if ( args.props.x_id ) {
 					query += `
-					WITH l AS l
-					OPTIONAL MATCH (l)-[r:X_NODE]->(:Node)
-					DELETE r
-					WITH l AS l
-					MATCH (n:Node) WHERE n.id = $props.x_id
-					CREATE (l)-[r:X_NODE]->(n)
-				`;
+						WITH l AS l
+						OPTIONAL MATCH (l)-[r:X_NODE]->(:Node)
+						DELETE r
+						WITH l AS l
+						MATCH (n:Node) WHERE n.id = $props.x_id
+						CREATE (l)-[r:X_NODE]->(n)
+					`;
 				}
 				if ( args.props.y_id ) {
 					query += `
-					WITH l AS l
-					OPTIONAL MATCH (l)-[r:Y_NODE]->(:Node)
-					DELETE r
-					WITH l AS l
-					MATCH (n:Node) WHERE n.id = $props.y_id
-					CREATE (l)-[r:Y_NODE]->(n)
-				`;
+						WITH l AS l
+						OPTIONAL MATCH (l)-[r:Y_NODE]->(:Node)
+						DELETE r
+						WITH l AS l
+						MATCH (n:Node) WHERE n.id = $props.y_id
+						CREATE (l)-[r:Y_NODE]->(n)
+					`;
 				}
 				query += `
-				RETURN l
-			`;
+					RETURN l
+				`;
 				const results = await session.run( query, args );
 
 				return {
@@ -200,7 +202,6 @@ const resolvers = {
 		async MergeLinkEnd( _, args, ctx ) {
 			try {
 				const session = ctx.driver.session();
-				console.log( 'args: ', args );
 				const query = `
 					MATCH (l:Link) WHERE l.id = $link_id
 					MERGE (l)-[:${ args.props.xy.toUpperCase() }_END]->(le:LinkEnd)
@@ -208,9 +209,7 @@ const resolvers = {
 					ON MATCH SET le += $props
 					RETURN le, l
 				`;
-				console.log( 'another test' );
 				const results = await session.run( query, args );
-				console.log( 'results: ', results.records );
 				return {
 					...defaultRes,
 					end: PrepareReturn( results, 'le', defaultLinkEnd ),
@@ -222,6 +221,7 @@ const resolvers = {
 			}
 		},
 
+		// at the moment not used
 		async UpdateSequence( _, args, ctx ) {
 			const session = ctx.driver.session();
 			args.props.seq = neo4j.int( args.props.seq );
@@ -240,6 +240,7 @@ const resolvers = {
 				seq,
 			};
 		},
+		// at the moment not used
 		async UpdateLinkEnd( _, args, ctx ) {
 			const session = ctx.driver.session();
 			args = TakeKeysFromProps( args, 'xy' );
@@ -265,24 +266,6 @@ const resolvers = {
 					DETACH DELETE n
 				`;
 				await session.run( deleteNodeQuery, args );
-				// todo: are these still necessary?
-				const formatLinksQuery = `
-					MATCH (l1:Link)
-					WHERE NOT (l1)-[:Y_NODE]->(:Node)
-					SET l1.y_id = l1.x_id
-					WITH l1 as l1
-					MATCH (n1:Node) WHERE n1.id = l1.y_id
-					CREATE (l1)-[:Y_NODE]->(n1)
-					WITH l1 as l1, n1 as n1
-					MATCH (l2:Link)
-					WHERE NOT (l2)-[:X_NODE]->(:Node)
-					SET l2.x_id = l2.y_id
-					WITH l2 as l2, l1 as l1, n1 as n1
-					MATCH (n2:Node) WHERE n2.id = l2.x_id
-					CREATE (l2)-[:X_NODE]->(n2)				
-					RETURN l1, l2, n1, n2
-				`;
-				await session.run( formatLinksQuery );
 
 				const cleanupQuery = `
 					MATCH (l:Link) WHERE NOT (l)--(:Node)
@@ -297,16 +280,32 @@ const resolvers = {
 					DETACH DELETE l
 				`;
 				await session.run( cleanupQuery );
+
+				const formatLinksQuery = `
+					OPTIONAL MATCH (l1:Link)
+					WHERE NOT (l1)-[:Y_NODE]->(:Node)
+					SET l1.y_id = l1.x_id
+					WITH l1 as l1
+					MATCH (n1:Node) WHERE n1.id = l1.y_id
+					CREATE (l1)-[:Y_NODE]->(n1)
+					WITH l1 as l1, n1 as n1
+					OPTIONAL MATCH (l2:Link)
+					WHERE NOT (l2)-[:X_NODE]->(:Node)
+					SET l2.x_id = l2.y_id
+					WITH l2 as l2, l1 as l1, n1 as n1
+					MATCH (n2:Node) WHERE n2.id = l2.x_id
+					CREATE (l2)-[:X_NODE]->(n2)
+					RETURN l1, l2, n1, n2
+				`;
+				await session.run( formatLinksQuery );
+
 				return {
 					success: true,
 					id: args.id,
 				};
 			}
 			catch ( e ) {
-				return {
-					message: e.message,
-					success: false,
-				};
+				return errorRes( e );
 			}
 		},
 		async DeleteLink( _, args, ctx ) {
@@ -328,69 +327,40 @@ const resolvers = {
 				};
 			}
 			catch ( e ) {
-				return {
-					message: e.message,
-					success: false,
-				};
+				return errorRes( e );
 			}
 		},
 		async DeleteSequence( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $link_id
-				OPTIONAL MATCH (l)-[:IS]->(s:Sequence)
-				DETACH DELETE s
-			`;
-			await session.run( query, args );
-			return { success: true };
+			try {
+				const session = ctx.driver.session();
+				const query = `
+					MATCH (l:Link) WHERE l.id = $link_id
+					OPTIONAL MATCH (l)-[:IS]->(s:Sequence)
+					DETACH DELETE s
+				`;
+				await session.run( query, args );
+				return { success: true };
+			}
+			catch ( e ) {
+				return errorRes( e );
+			}
 		},
 		async DeleteLinkEnd( _, args, ctx ) {
-			const session = ctx.driver.session();
-			const query = `
-				MATCH (l:Link) WHERE l.id = $link_id
-				MATCH (l)-[:${ args.xy.toUpperCase() }_END]->(le:LinkEnd)
-				DETACH DELETE le
-			`;
-			await session.run( query, args );
-			return { success: true };
+			try {
+				const session = ctx.driver.session();
+				const query = `
+					MATCH (l:Link) WHERE l.id = $link_id
+					MATCH (l)-[:${ args.xy.toUpperCase() }_END]->(le:LinkEnd)
+					DETACH DELETE le
+				`;
+				await session.run( query, args );
+				return { success: true };
+			}
+			catch ( e ) {
+				errorRes( e );
+			}
 		},
 	},
 };
-
-// takes objects out of props on to args so we can pass args directly
-function TakeKeysFromProps( object, ...keys ) {
-	const props = object.props;
-	for ( let key of keys ) {
-		if ( props[key] ) {
-			object[key] = props[key];
-			delete object.props[key];
-		}
-	}
-	return object;
-}
-
-// Get a key from the return object
-function Get( results, key ) {
-	if ( results.records[0].keys.includes( key ) ) {
-		return results.records[0].get( key ).properties;
-	}
-	return undefined;
-}
-
-// Sets undefined properties to default values
-function SetDefaults( obj, defaultObj ) {
-	for ( let key of Object.keys( defaultObj ) ) {
-		if ( !obj[key] ) {
-			obj[key] = defaultObj[key];
-		}
-	}
-	return obj;
-}
-
-function PrepareReturn( results, key, defaultObj ) {
-	let obj = Get( results, key );
-	obj = SetDefaults( obj, defaultObj );
-	return obj;
-}
 
 module.exports = resolvers;

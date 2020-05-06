@@ -9,11 +9,10 @@ import {
 	CREATE_LINK, CREATE_NODE, DELETE_LINK, DELETE_LINK_END, DELETE_NODE, DELETE_SEQUENCE, MERGE_LINK_END, MERGE_SEQUENCE,
 	UPDATE_LINK, UPDATE_NODE,
 } from './queries/ServerMutations';
+import gql from 'graphql-tag';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from './queries/LocalQueries';
-import {
-	deleteLinkEnd, deleteSequence, existsLinkEnd, existsSequence, saveLinkEnd, saveSequence,
-} from './TransactionUtils';
+import { deleteLinkOrNode, handleLinkEnds, handleSequence } from './TransactionUtils';
 
 function App() {
 	const id = 'app';
@@ -39,8 +38,12 @@ function App() {
 		setMakeAppActive( true );
 	};
 
-	const { data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES );
-	const { data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS );
+	const { data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES, {
+		onError: error => console.log( error ),
+	} );
+	const { data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS, {
+		onError: error => console.log( error ),
+	} );
 
 	const { data: localNodeData } = useQuery( LOCAL_NODES_TAGS );
 	const { data: localLinkData } = useQuery( LOCAL_LINKS_TAGS );
@@ -63,84 +66,98 @@ function App() {
 			const { deletedNodes } = deletedNodesData;
 			const { deletedLinks } = deletedLinksData;
 
-			let promises = [];
+			let nodePromises = [];
+			let createLinkPromises = [];
+			let createLinkEndAndSeqPromises = [];
+			let editedLinkPromises = [];
+			let editedLinkEndAndSeqPromises = [];
+			let deleteLinkPromises = [];
+			let deleteNodePromises = [];
 
 			for ( let node of createdNodes ) {
 				console.log( 'saving created node ', node );
 				const { id, label, story, synchronous, type, unreliable } = node;
 				const variables = { id, label, type, props: { story, synchronous, unreliable } };
-				promises.push( runCreateNode( { variables } ) );
+				nodePromises.push( runCreateNode( { variables } ) );
 			}
+
 			for ( let node of editedNodes ) {
 				console.log( 'saving updated node ', node );
 				const { id, label, story, synchronous, type, unreliable } = node;
 				const variables = { id, props: { label, type, story, synchronous, unreliable } };
-				promises.push( runUpdateNode( { variables } ) );
-			}
-			for ( let link of createdLinks ) {
-				console.log( 'saving created link ', link );
-				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
-				const variables = { id, label, type, x_id, y_id, props: { story, optional } };
-				promises.push( runCreateLink( { variables } ) );
-				if ( existsSequence( link ) ) {
-					saveSequence( link, promises, runMergeSeq );
-				}
-				else {
-					deleteSequence( link, promises, runDeleteSeq );
-				}
-				if ( existsLinkEnd( link, 'x_end' ) ) {
-					saveLinkEnd( link, promises, 'x_end', runMergeLinkEnd );
-				}
-				else {
-					deleteLinkEnd( link, promises, 'x_end', runDeleteLinkEnd );
-				}
-				if ( existsLinkEnd( link, 'y_end' ) ) {
-					saveLinkEnd( link, promises, 'y_end', runMergeLinkEnd );
-				}
-				else {
-					deleteLinkEnd( link, promises, 'y_end', runDeleteLinkEnd );
-				}
-			}
-			for ( let link of editedLinks ) {
-				console.log( 'saving edited link ', link );
-				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
-				const variables = { id, props: { story, optional, label, type, x_id, y_id } };
-				promises.push( runUpdateLink( { variables } ) );
-				if ( existsSequence( link ) ) {
-					saveSequence( link, promises, runMergeSeq );
-				}
-				else {
-					deleteSequence( link, promises, runDeleteSeq );
-				}
-				if ( existsLinkEnd( link, 'x_end' ) ) {
-					saveLinkEnd( link, promises, 'x_end', runMergeLinkEnd );
-				}
-				else {
-					deleteLinkEnd( link, promises, 'x_end', runDeleteLinkEnd );
-				}
-				if ( existsLinkEnd( link, 'y_end' ) ) {
-					saveLinkEnd( link, promises, 'y_end', runMergeLinkEnd );
-				}
-				else {
-					deleteLinkEnd( link, promises, 'y_end', runDeleteLinkEnd );
-				}
-			}
-			for ( let link of deletedLinks ) {
-				console.log( 'deleting link ', link );
-				const { id } = link;
-				promises.push( runDeleteLink( { variables: { id } } ) );
-			}
-			for ( let node of deletedNodes ) {
-				console.log( 'deleting node ', node );
-				const { id } = node;
-				promises.push( runDeleteNode( { variables: { id } } ) );
+				nodePromises.push( runUpdateNode( { variables } ) );
 			}
 
-			Promise.allSettled( promises )
+			Promise.all( nodePromises )
+			.then( () => {
+				console.log( 'finished creating and updating nodes, will now handle created links' );
+				for ( let link of createdLinks ) {
+					console.log( 'saving created link ', link );
+					const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
+					const variables = { id, label, type, x_id, y_id, props: { story, optional } };
+					createLinkPromises.push( runCreateLink( { variables } ) );
+				}
+				Promise.all( createLinkPromises )
 				.then( () => {
-					nodeRefetch();
-					linkRefetch();
-				} );
+					console.log( 'finished creating links, will now handle sequences and link ends' );
+					for ( let link of createdLinks ) {
+						handleSequence( link, createLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
+						handleLinkEnds( link, createLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
+					}
+
+					Promise.all( createLinkEndAndSeqPromises )
+					.then( () => {
+						console.log( 'finished sequences and link ends, will now handle edited links' );
+						for ( let link of editedLinks ) {
+							console.log( 'saving edited link ', link );
+							const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
+							const variables = { id, props: { story, optional, label, type, x_id, y_id } };
+							editedLinkPromises.push( runUpdateLink( { variables } ) );
+						}
+
+						Promise.all( editedLinkPromises )
+						.then( () => {
+							console.log( 'finished saving edited links, will now handle sequences and link ends' );
+							for ( let link of editedLinks ) {
+								handleSequence( link, editedLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
+								handleLinkEnds( link, editedLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
+							}
+
+							Promise.all( editedLinkEndAndSeqPromises )
+							.then( () => {
+								console.log( 'finished sequences and link ends, will now delete links' );
+								for ( let link of deletedLinks ) {
+									deleteLinkOrNode( link, deleteLinkPromises, runDeleteLink );
+								}
+
+								Promise.all( deleteLinkPromises )
+								.then( () => {
+									console.log( 'finished deleting links, will now delete nodes' );
+									for ( let node of deletedNodes ) {
+										deleteLinkOrNode( node, deleteNodePromises, runDeleteNode );
+									}
+
+									Promise.all( deleteNodePromises )
+									.then( () => {
+										console.log( 'finished deleting nodes, resetting local store' );
+										client.writeQuery( {
+											query: gql`
+                        query {
+                          deletedNodes
+                          deletedLinks
+                        }`,
+											data: {
+												deletedNodes: [],
+												deletedLinks: [],
+											},
+										} );
+									} );
+								} ).catch( reason => console.log( `failed because of ${ reason }` ) );
+							} ).catch( reason => console.log( `failed because of ${ reason }` ) );
+						} ).catch( reason => console.log( `failed because of ${ reason }` ) );
+					} ).catch( reason => console.log( `failed because of ${ reason }` ) );
+				} ).catch( reason => console.log( `failed because of ${ reason }` ) );
+			} ).catch( reason => console.log( `failed because of ${ reason }` ) );
 		}
 	};
 

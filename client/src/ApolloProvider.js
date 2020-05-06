@@ -164,11 +164,12 @@ const client = new ApolloClient( {
 					// otherwise, assign the link end whose node will be deleted the same node as the other link end
 					else if ( link.x.id === nodeToDelete.id ) {
 						link.x.id = link.y.id;
+						link.edited = true;
 					}
 					else if ( link.y.id === nodeToDelete.id ) {
 						link.y.id = link.x.id;
+						link.edited = true;
 					}
-					link.edited = true;
 					return link;
 				} );
 
