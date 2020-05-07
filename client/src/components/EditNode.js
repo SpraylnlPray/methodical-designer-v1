@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
@@ -9,6 +9,7 @@ import { DELETE_LOCAL_NODE, UPDATE_LOCAL_NODE } from '../queries/LocalMutations'
 import { typeOptions } from '../nodeOptions';
 
 const EditNode = ( { activeItem, client } ) => {
+
 	const { data: { Nodes } } = useQuery( LOCAL_NODES );
 	const { label, type, story, synchronous, unreliable } = Nodes.find( node => {
 		return node.id === activeItem.itemId;
@@ -19,6 +20,10 @@ const EditNode = ( { activeItem, client } ) => {
 		inputReducer,
 		{ ...inputs, justMutated: false },
 	);
+
+	useEffect( () => {
+		dispatch( { type: 'UPDATE', data: inputs } );
+	}, [ activeItem ] );
 
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_NODE );
 	const [ runDelete ] = useMutation( DELETE_LOCAL_NODE );

@@ -26,6 +26,9 @@ export const inputReducer = ( state, action ) => {
 			seq[action.name] = action.value;
 			return { ...state, seq };
 
+		case 'UPDATE':
+			return { ...action.data };
+
 		default:
 			return state;
 	}

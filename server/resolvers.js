@@ -121,6 +121,7 @@ const resolvers = {
 				const session = ctx.driver.session();
 				const query = `
 					MATCH (n:Node) WHERE n.id = $id
+					SET n:Node:${ args.type }
 					SET n += $props
 					RETURN n
 				`;

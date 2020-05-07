@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form, Header } from 'semantic-ui-react';
@@ -28,6 +28,10 @@ const EditLink = ( { activeItem, client } ) => {
 		inputReducer,
 		{ ...inputs },
 	);
+
+	useEffect( () => {
+		dispatch( { type: 'UPDATE', data: inputs } );
+	}, [ activeItem ] );
 
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_LINK );
 	const [ runDelete ] = useMutation( DELETE_LOCAL_LINK );

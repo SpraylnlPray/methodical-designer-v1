@@ -8,7 +8,7 @@ const InteractionPane = ( { client, nodeRefetch, linkRefetch } ) => {
 	const { data: { activeItem } } = useQuery( ACTIVE_ITEM );
 	return (
 		<div className='bordered interaction-pane margin-base'>
-			<div>{ activeItem.itemType }</div>
+			<div>{ activeItem.itemId }</div>
 			<OptionBar/>
 			<InputPane
 				client={ client }
