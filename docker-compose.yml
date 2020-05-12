@@ -1,19 +1,7 @@
 version: '3.2'
 
 services:
-  db:
-    image: neo4j:latest
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      - NEO4J_AUTH=neo4j/methodical
-      - NEO4JLABS_PLUGINS=["apoc"]
-    container_name: neo_db
-
   backend:
-    depends_on:
-      - db
     image: server:dev
     container_name: backend_test
     ports:

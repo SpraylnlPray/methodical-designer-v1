@@ -20,7 +20,6 @@ const resolvers = {
 		},
 
 		async CreateNode( _, args, ctx ) {
-			console.log( 'aölsdkfjöalsdkjföladsjk' );
 			try {
 				const session = ctx.driver.session();
 				const query = `
