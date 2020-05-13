@@ -9,7 +9,7 @@ import {
 } from './queries/LocalQueries';
 
 const httpLink = createHttpLink( {
-	uri: 'http://localhost:8080/graphql',
+	uri: 'http://ec2co-ecsel-g8m99dlhh7t1-573279153.us-east-2.elb.amazonaws.com:8080/graphql',
 } );
 
 const cache = new InMemoryCache( {
