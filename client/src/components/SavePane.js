@@ -1,13 +1,12 @@
 import React from 'react';
 import { Button } from 'semantic-ui-react';
-import { useMutation, useQuery } from '@apollo/client';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import {
 	CREATE_LINK, CREATE_NODE, DELETE_LINK, DELETE_LINK_END, DELETE_NODE, DELETE_SEQUENCE, MERGE_LINK_END, MERGE_SEQUENCE,
 	UPDATE_LINK, UPDATE_NODE,
 } from '../queries/ServerMutations';
 import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 import { deleteLinkOrNode, handleLinkEnds, handleSequence } from '../TransactionUtils';
-import gql from 'graphql-tag';
 import LoadingMessage from './LoadingMessage';
 
 const SavePane = ( { client } ) => {

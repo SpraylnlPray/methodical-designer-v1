@@ -1,4 +1,4 @@
-import gql from 'graphql-tag';
+import { gql } from '@apollo/client';
 
 export const CREATE_LOCAL_NODE = gql`
   mutation CreateLocalNode($label: String!, $type: NodeType!, $props: NodeCreateInput){
